@@ -718,6 +718,11 @@ Anime Character,Inuyashiki,Donald Trump,
             appId: "1:792552718238:web:fd7133eb7fc0a9e725a08f"
         };
 
+        
+        // --- Timer state variables ---
+        let localDisplayInterval = null;
+        let hostMonitorInterval = null;
+
         // Helper to get consistent room references
         function getRoomRef(code) {
             return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
@@ -740,18 +745,9 @@ Anime Character,Inuyashiki,Donald Trump,
                     currentUser = (await signInAnonymously(auth)).user;
                 }
 
-                //db security
-                const appCheck = initializeAppCheck(app, {
-                provider: new ReCaptchaEnterpriseProvider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
-                isTokenAutoRefreshEnabled: true
-
-            }); 
-
             } catch (err) {
                 console.warn("Firebase running in offline or demo fallback mode:", err);
             }
-
-            
 
             // Check URL for join code
             const urlParams = new URLSearchParams(window.location.search);
@@ -760,66 +756,87 @@ Anime Character,Inuyashiki,Donald Trump,
                 switchLobbyTab('join');
                 document.getElementById('join-code').value = codeParam.toUpperCase();
             }
+
+            //db security
+            try {
+                const appCheck = initializeAppCheck(app, {
+                    provider: new ReCaptchaEnterpriseProvider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
+                    isTokenAutoRefreshEnabled: true
+                }); 
+            } catch (err) {
+                console.warn("Firebase unable to intiialize App Check", err);
+            }
         });
 
         // Timer logic
-        function handleTimerSync(roomData) {
-            const timerDisplay = document.getElementById('timer-display');
-            if (timerDisplay) {
-                timerDisplay.textContent = roomData.timer;
-            }
 
-            // ONLY the host (player index 0) manages the interval
-            // console.log("I am player ",myPlayerIndex)
-            if (myPlayerIndex === 0) {
-                if (roomData.timerActive && roomData.timer > 0) {
-                    startHostTimer();
-                } else {
-                    stopHostTimer();
-                }
-            }
-        }
+        // 1. Client-side rendering loop (runs locally on ALL clients)
+        function startLocalTimerDisplay() {
+            if (localDisplayInterval) clearInterval(localDisplayInterval);
 
-        function startHostTimer() {
-            if (timerInterval) return;
-
-            timerInterval = setInterval(async () => {
-                if (!roomCode || !activeRoomData) return;
-                const roomRef = getRoomRef(roomCode);
-                const docSnap = await getDoc(roomRef);
-                
-                if (!docSnap.exists()) {
-                    stopHostTimer();
+            localDisplayInterval = setInterval(() => {
+                if (!activeRoomData || !activeRoomData.turnEndTime || !activeRoomData.timerActive) {
+                    updateTimerUI(0);
                     return;
                 }
 
-                const currentTimer = docSnap.data().timer;
+                const remainingMs = activeRoomData.turnEndTime - Date.now();
+                const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
 
-                if (currentTimer >= 1) {
-                    await updateDoc(roomRef, {
-                        timer: currentTimer - 1
-                    });
-                }
-                if (currentTimer < 1) {
-                    // Timer hit zero: stop interval and advance to the next player's turn
-                    // stopHostTimer();
-                    
-                    const roomRef = getRoomRef(roomCode);
-
-                    await updateDoc(roomRef, {
-                        timer: 60,            // Reset timer for the next turn
-                        timerActive: true,    // Keep the timer running for the new turn
-                        turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length  // Rotate to next player
-                    });
-                }
-            }, 1000);
+                updateTimerUI(remainingSeconds);
+            }, 200); // Check every 200ms for smooth UI updates
         }
 
-        function stopHostTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
+        function updateTimerUI(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const secs = (totalSeconds % 60).toString().padStart(2, '0');
+            
+            const gameTimerEl = document.getElementById('game-timer');
+            if (gameTimerEl) {
+                gameTimerEl.innerText = `${mins}:${secs}`;
             }
+
+            const timerDisplayEl = document.getElementById('timer-display');
+            if (timerDisplayEl) {
+                timerDisplayEl.textContent = `${totalSeconds}s`;
+            }
+        }
+
+        // 2. Host Expiration Monitor (runs ONLY on Host client - player index 0)
+        function startHostTimerMonitor() {
+            if (hostMonitorInterval) clearInterval(hostMonitorInterval);
+
+            hostMonitorInterval = setInterval(async () => {
+                // ONLY the host (player index 0) manages the expiration monitor
+                // console.log("I am player ",myPlayerIndex)
+                if (myPlayerIndex !== 0 || !activeRoomData || !activeRoomData.timerActive) return;
+
+                const remainingMs = activeRoomData.turnEndTime - Date.now();
+
+                if (remainingMs <= 0) {
+                    // Stop monitor during update to prevent duplicate triggers
+                    clearInterval(hostMonitorInterval);
+                    hostMonitorInterval = null;
+
+                    await advanceToNextTurn();
+                }
+            }, 500);
+        }
+
+        // Helper function to handle turn advancement and set a new turnEndTime
+        async function advanceToNextTurn() {
+            if (!roomCode || !activeRoomData) return;
+            const roomRef = getRoomRef(roomCode);
+
+            const DURATION_MS = 60000; // 60 seconds
+            const targetEndTime = Date.now() + DURATION_MS;
+            const nextTurnIndex = (activeRoomData.turnIndex + 1) % activeRoomData.players.length;
+
+            await updateDoc(roomRef, {
+                turnEndTime: targetEndTime,
+                timerActive: true,
+                turnIndex: nextTurnIndex
+            });
         }
 
         function updateTimerButton(isTimerActive) {
@@ -837,6 +854,7 @@ Anime Character,Inuyashiki,Donald Trump,
                 lucide.createIcons();
             }
         }
+
         // Parse CSV with quote handling
         function parseCSV(text) {
             const lines = text.trim().split('\n');
@@ -922,7 +940,7 @@ Anime Character,Inuyashiki,Donald Trump,
                 code: roomCode,
                 status: 'waiting',
                 turnIndex: 0,
-                timer: 60,
+                turnEndTime: Date.now() + 60000,
                 timerActive: false,
                 dataset: currentDataset,
                 players: [
@@ -956,7 +974,7 @@ Anime Character,Inuyashiki,Donald Trump,
                 return showToast("Room is already full (Max 4 players)!");
             }
 
-            myPlayerIndex = data.players.length;
+            // myPlayerIndex = data.players.length;
             const updatedPlayers = [...data.players, { id: currentUser.uid, name: nameInput, score: 0, assignedChar: null, revealed: false }];
             
             await updateDoc(roomRef, { players: updatedPlayers });
@@ -979,7 +997,18 @@ Anime Character,Inuyashiki,Donald Trump,
                     renderGameScreen(data);
                 }
 
-                handleTimerSync(data);
+                // Inside subscribeToRoom onSnapshot callback:
+                if (data && currentUser) {
+                    myPlayerIndex = data.players.findIndex(p => p.id === currentUser.uid);
+                }
+
+                // Start local timer display for everyone
+                startLocalTimerDisplay();
+
+                // If current user is host (myPlayerIndex === 0), ensure host monitor is running
+                if (myPlayerIndex === 0) {
+                    startHostTimerMonitor();
+                }
 
             }, (error) => {
                 console.error("Firestore sync error:", error);
@@ -1029,7 +1058,7 @@ Anime Character,Inuyashiki,Donald Trump,
             if (myPlayerIndex === 0) {
                 startBtn.disabled = data.players.length < 2;
                 if (data.players.length < 2) {
-                    startBtn.innerText = `You Need at Least 2 Larpers to Start (${data.players.length}/4)`;
+                    startBtn.innerText = `You Need at Least Two Larpers to Start (${data.players.length}/4)`;
                 } else {
                     startBtn.innerText = "Start Larps Up Game!";
                 }
@@ -1058,7 +1087,7 @@ Anime Character,Inuyashiki,Donald Trump,
                 status: 'playing',
                 players: updatedPlayers,
                 turnIndex: 0,
-                timer: 60,
+                turnEndTime: Date.now() + 60000,
                 timerActive: true
             });
         };
@@ -1070,10 +1099,6 @@ Anime Character,Inuyashiki,Donald Trump,
 
             const currentTurnPlayer = data.players[data.turnIndex];
             document.getElementById('game-turn-player').innerText = currentTurnPlayer ? currentTurnPlayer.name : 'Unknown';
-
-            const mins = Math.floor(data.timer / 60).toString().padStart(2, '0');
-            const secs = (data.timer % 60).toString().padStart(2, '0');
-            document.getElementById('game-timer').innerText = `${mins}:${secs}`;
 
             //Update pause/resume botton UI
             updateTimerButton(data.timerActive);
@@ -1175,43 +1200,46 @@ Anime Character,Inuyashiki,Donald Trump,
 
             const dataset = activeRoomData.dataset || currentDataset;
             const randomChar = dataset[Math.floor(Math.random() * dataset.length)];
-            updatedPlayers[idx].assignedChar = randomChar;
+            // updatedPlayers[idx].assignedChar = randomChar;
             updatedPlayers[idx].revealed = true;
+
+            await advanceToNextTurn();
 
             const roomRef = getRoomRef(roomCode);
             await updateDoc(roomRef, { 
-                players: updatedPlayers,
-                turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length
+                players: updatedPlayers
             });
-    
+
             showToast("Awesome! +1 Point added!");
         };
 
         window.toggleTimer = async () => {
-            if (!roomCode) return;
+            if (!roomCode || !activeRoomData) return;
 
             const roomRef = getRoomRef(roomCode);
             try {
-                const docSnap = await getDoc(roomRef);
-                if (!docSnap.exists()) return;
-
-                const roomData = docSnap.data();
-                
-                await updateDoc(roomRef, {
-                    timerActive: !roomData.timerActive
-                });
+                if (activeRoomData.timerActive) {
+                    // Pause timer: store remaining time left
+                    const remainingMs = Math.max(0, activeRoomData.turnEndTime - Date.now());
+                    await updateDoc(roomRef, {
+                        timerActive: false,
+                        pausedRemainingMs: remainingMs
+                    });
+                } else {
+                    // Resume timer: recalculate turnEndTime using stored remaining time
+                    const remainingMs = activeRoomData.pausedRemainingMs || 60000;
+                    await updateDoc(roomRef, {
+                        timerActive: true,
+                        turnEndTime: Date.now() + remainingMs
+                    });
+                }
             } catch (err) {
                 console.error("Error toggling timer:", err);
             }
         };
 
         window.nextTurn = async () => {
-            if (!activeRoomData) return;
-            const roomRef = getRoomRef(roomCode);
-            await updateDoc(roomRef, {
-                turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length,
-                timer: 60
-            });
+            await advanceToNextTurn();
         };
 
         window.nextRound = async () => {
@@ -1229,7 +1257,8 @@ Anime Character,Inuyashiki,Donald Trump,
             await updateDoc(roomRef, {
                 players: updatedPlayers,
                 turnIndex: 0,
-                timer: 60
+                turnEndTime: Date.now() + 60000,
+                timerActive: true
             });
 
             showToast("Dealt fresh characters to all players!");
