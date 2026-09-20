@@ -351,13 +351,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
-
-        const appCheck = initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
-            isTokenAutoRefreshEnabled: true
-        }); 
-
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
 
         // Global dataset with provided CSV values + extra defaults
         const DEFAULT_CSV = `
@@ -722,7 +716,6 @@ Anime Character,Inuyashiki,Donald Trump,
             appId: "1:792552718238:web:fd7133eb7fc0a9e725a08f"
         };
 
-
         // Helper to get consistent room references
         function getRoomRef(code) {
             return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
@@ -747,6 +740,11 @@ Anime Character,Inuyashiki,Donald Trump,
             } catch (err) {
                 console.warn("Firebase running in offline or demo fallback mode:", err);
             }
+
+             const appCheck = initializeAppCheck(app, {
+                provider: new ReCaptchaV3Provider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
+                isTokenAutoRefreshEnabled: true
+            }); 
 
             // Check URL for join code
             const urlParams = new URLSearchParams(window.location.search);
@@ -795,9 +793,9 @@ Anime Character,Inuyashiki,Donald Trump,
                         timer: currentTimer - 1
                     });
                 }
-                if(currentTimer < 1){
+                if (currentTimer < 1) {
                     // Timer hit zero: stop interval and advance to the next player's turn
-                    stopHostTimer();
+                    // stopHostTimer();
                     
                     const roomRef = getRoomRef(roomCode);
 
@@ -807,7 +805,6 @@ Anime Character,Inuyashiki,Donald Trump,
                         turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length  // Rotate to next player
                     });
                 }
-                
             }, 1000);
         }
 
