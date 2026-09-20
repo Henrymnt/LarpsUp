@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Larps Up! Multiplayer Larping Game</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome / Lucide Icons -->
@@ -351,7 +353,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
+        import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
 
         // Global dataset with provided CSV values + extra defaults
         const DEFAULT_CSV = `
@@ -740,7 +742,7 @@ Anime Character,Inuyashiki,Donald Trump,
 
                 //db security
                 const appCheck = initializeAppCheck(app, {
-                provider: new ReCaptchaV3Provider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
+                provider: new ReCaptchaEnterpriseProvider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
                 isTokenAutoRefreshEnabled: true
 
             }); 
