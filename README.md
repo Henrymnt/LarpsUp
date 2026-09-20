@@ -3,8 +3,6 @@ This was put together in a few hours for me and my friends - if you wish to use 
 
 i might go back and fix it up a little bit if i have time
 
-Copyright (C) [2026] [heads-up-but-anime]
-
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
