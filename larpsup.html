@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Larps Up! Multiplayer Larping Game</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome / Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .card-flip {
+            perspective: 1000px;
+        }
+        .card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        /* Glowing effects */
+        .glow-purple {
+            box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.4);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-purple-500 selection:text-white">
+
+    <!-- Header Navbar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-extrabold text-xl shadow-lg shadow-purple-500/30">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">LARPS UP!</h1>
+                    <p class="text-xs text-slate-400 font-medium">The Larping Game</p>
+                </div>
+            </div>
+            <div id="nav-room-badge" class="hidden items-center space-x-2 bg-slate-800/80 border border-slate-700/60 px-3 py-1.5 rounded-full text-xs font-semibold">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-400">Larp Code:</span>
+                <span id="nav-room-code" class="text-purple-400 font-mono text-sm tracking-wider">----</span>
+                <button onclick="copyRoomCode()" class="text-slate-400 hover:text-white ml-1 transition" title="Copy Code">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 flex flex-col justify-center w-full">
+        
+        <!-- ================= LOBBY / HOME SCREEN ================= -->
+        <section id="screen-lobby" class="w-full max-w-xl mx-auto space-y-6">
+            <div class="text-center space-y-3">
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">Online 4-Player Multilarper</span>
+                <h2 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Guess Who You're Larping!</h2>
+                <p class="text-slate-400 text-sm sm:text-base">Every player gets to larp a secret character assigned to them. You can see everyone else's character, but NOT your own!</p>
+            </div>
+
+            <!-- Action Tabs -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800/80">
+                    <button id="btn-tab-create" onclick="switchLobbyTab('create')" class="py-2.5 text-sm font-bold rounded-lg transition bg-purple-600 text-white shadow-md">Create Larp Circle</button>
+                    <button id="btn-tab-join" onclick="switchLobbyTab('join')" class="py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white">Join Larp Circle</button>
+                </div>
+
+                <!-- Create Room Form -->
+                <div id="form-create" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Larp Name</label>
+                        <input type="text" id="host-name" placeholder="e.g. LarpMaster" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500 transition">
+                    </div>
+
+                    <!-- Dataset Selector / Custom CSV Modal Trigger -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Deck of Potential Larps</label>
+                            <button onclick="toggleCSVModal(true)" class="text-xs text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Custom CSV Data
+                            </button>
+                        </div>
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center">
+                                    <i data-lucide="database" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <p id="deck-status-title" class="text-sm font-bold text-slate-200">Default Larps (Anime Characters)</p>
+                                    <p id="deck-status-count" class="text-xs text-slate-400">6 Characters Loaded</p>
+                                </div>
+                            </div>
+                            <button onclick="toggleCSVModal(true)" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg transition border border-slate-700">Edit / Replace</button>
+                        </div>
+                    </div>
+
+                    <button onclick="createRoom()" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-purple-600/30 transition transform active:scale-95 flex items-center justify-center space-x-2">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        <span>Create Larp Circle</span>
+                    </button>
+                </div>
+
+                <!-- Join Room Form -->
+                <div id="form-join" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Larp Name</label>
+                        <input type="text" id="join-name" placeholder="e.g. TheLarpersApprentice" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Larp Code</label>
+                        <input type="text" id="join-code" placeholder="e.g. L4RP3R" uppercase class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white font-mono tracking-widest text-center text-lg uppercase focus:outline-none focus:border-purple-500 transition">
+                    </div>
+                    <button onclick="joinRoom()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition transform active:scale-95 flex items-center justify-center space-x-2">
+                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                        <span>Join Larp</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= WAITING ROOM SCREEN ================= -->
+        <section id="screen-waiting" class="w-full max-w-2xl mx-auto space-y-6 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                    <div>
+                        <span class="text-xs uppercase font-bold text-purple-400 tracking-wider">Larp Lobby</span>
+                        <h2 class="text-2xl font-extrabold text-white">Waiting for Larpers...</h2>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 font-semibold block">LARP CODE</span>
+                        <div class="flex items-center space-x-2">
+                            <span id="waiting-room-code" class="text-2xl font-mono font-black text-purple-400">------</span>
+                            <button onclick="copyRoomCode()" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition" title="Copy Code">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-sm text-slate-400">Share this code with up to 4 fellow larpers so they can join your larp circle. You need at least 2 larpers to start!</p>
+
+                <!-- 4 Player Slots -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Slot 1 -->
+                    <div id="slot-0" class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-500 flex items-center justify-center font-bold">1</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-500 font-semibold uppercase">Larpotaro (Host)</p>
+                            <p class="text-sm font-bold text-slate-400 italic">Empty Seat...</p>
+                        </div>
+                    </div>
+                    <!-- Slot 2 -->
+                    <div id="slot-1" class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-500 flex items-center justify-center font-bold">2</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-500 font-semibold uppercase">The Larpdog</p>
+                            <p class="text-sm font-bold text-slate-400 italic">Empty Seat...</p>
+                        </div>
+                    </div>
+                    <!-- Slot 3 -->
+                    <div id="slot-2" class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-500 flex items-center justify-center font-bold">3</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-500 font-semibold uppercase">The Larpkey</p>
+                            <p class="text-sm font-bold text-slate-400 italic">Empty Seat...</p>
+                        </div>
+                    </div>
+                    <!-- Slot 4 -->
+                    <div id="slot-3" class="bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-500 flex items-center justify-center font-bold">4</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-500 font-semibold uppercase">The Larpheasant</p>
+                            <p class="text-sm font-bold text-slate-400 italic">Empty Seat...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Host Controls -->
+                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3">
+                    <button id="btn-start-game" onclick="startGame()" disabled class="flex-1 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+                        <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                        <span>Start Larps Up Match</span>
+                    </button>
+                    <button onclick="leaveRoom()" class="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition">Larp Leaving</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MAIN GAMEPLAY SCREEN ================= -->
+        <section id="screen-game" class="w-full space-y-6 hidden">
+            <!-- Top Game Bar -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap gap-4 items-center justify-between shadow-xl">
+                <!-- Turn Indicator -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
+                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Current Larper</span>
+                        <p id="game-turn-player" class="text-lg font-extrabold text-purple-400">Player 1</p>
+                    </div>
+                </div>
+
+                <!-- Timer -->
+                <div class="flex items-center space-x-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
+                    <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block">Larp Timer</span>
+                        <span id="game-timer" class="font-mono text-xl font-black text-amber-400">01:00</span>
+                    </div>
+                </div>
+
+                <!-- Game Controls -->
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleTimer()" id="btn-timer-toggle" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                        <i data-lucide="pause" class="w-3.5 h-3.5"></i> Pause Timer
+                    </button>
+                    <button onclick="nextTurn()" class="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                        <i data-lucide="skip-forward" class="w-3.5 h-3.5"></i> Pass Turn
+                    </button>
+                    <button onclick="nextRound()" class="px-3 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Deal New Larps
+                    </button>
+                </div>
+            </div>
+
+            <!-- Player Heads-Up Cards Grid (4 Players) -->
+            <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Dynamically generated player cards go here -->
+            </div>
+
+            <!-- Clues & Chat Drawer -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Interactive Clue/Guess Log -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col h-80">
+                    <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-3">
+                        <h3 class="font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i> Game Log
+                        </h3>
+                        <span class="text-xs text-slate-400">Ask questions or log clues</span>
+                    </div>
+
+                    <div id="clue-log" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar text-sm">
+                        <p class="text-xs text-slate-500 italic text-center py-4">No clues larped yet. Ask yes/no questions to guess who you're larping!</p>
+                    </div>
+
+                    <form onsubmit="submitClue(event)" class="mt-3 flex gap-2">
+                        <input type="text" id="input-clue" placeholder="Type a clue or question (e.g. 'Am I elite goons?')" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition">
+                            Send
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Scoreboard & Quick Instructions -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-200 mb-3 flex items-center gap-2">
+                            <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i> Larpboard
+                        </h3>
+                        <div id="scoreboard-list" class="space-y-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-800 text-xs text-slate-400 space-y-1">
+                        <p class="font-bold text-slate-300">How to Larp:</p>
+                        <p>1. Everyone can see your card except YOU!</p>
+                        <p>2. Ask Yes/No questions on during your larp.</p>
+                        <p>3. If you guess right, click <span class="text-emerald-400 font-semibold">"Larp Successful (+1)"</span> on your card!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= CUSTOM CSV MODAL ================= -->
+    <div id="csv-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-extrabold text-lg text-white flex items-center gap-2">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5 text-purple-400"></i> Custom CSV Character Deck
+                </h3>
+                <button onclick="toggleCSVModal(false)" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-400">
+                Paste your own CSV content or upload a `.csv` file. Expected format: <br>
+                <code class="text-purple-400 font-mono bg-slate-950 px-2 py-0.5 rounded">Category, Show, Character</code>
+            </p>
+
+            <textarea id="csv-textarea" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-purple-500 custom-scrollbar" placeholder="Category,Show,Character&#10;Anime Character,Attack on Titan,Colossal Titan&#10;Anime Character,Re:Zero,Beatrice (&quot;Beako&quot;)"></textarea>
+
+            <div class="flex justify-between items-center pt-2">
+                <div>
+                    <input type="file" id="csv-file-input" accept=".csv,.txt" class="hidden" onchange="handleFileUpload(event)">
+                    <button onclick="document.getElementById('csv-file-input').click()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg transition border border-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Load CSV File
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="resetDefaultCSV()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg transition font-semibold">Reset to Default</button>
+                    <button onclick="applyCSV()" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded-lg transition font-bold shadow-md">Apply Dataset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-purple-600 text-white px-4 py-3 rounded-xl shadow-2xl font-semibold text-sm transition transform translate-y-20 opacity-0 z-50 flex items-center space-x-2">
+        <i data-lucide="info" class="w-4 h-4"></i>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <!-- Firebase JS SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
+            isTokenAutoRefreshEnabled: true
+        }); 
+
+
+        // Global dataset with provided CSV values + extra defaults
+        const DEFAULT_CSV = `
+Category,Show,Character,
+Anime Character,Attack on Titan,Colossal Titan,
+Anime Character,Re:Zero,"""Beako"" Beatrice",
+Anime Character,DanDaDan,"""Jiji"" Enjoji",
+Anime Character,My Dress Up Darling,"""Juju"" Sajuna Inui",
+Anime Character,Mob Psycho 100,"""Mob"" Shigeo Kageyama",
+Anime Character,Mob Psycho 100,"""Teru"" Teruki Hanazawa",
+Anime Character,Nichijou,"""The Professor"" Hakase Shinonome",
+Anime Character,The Saga of Tanya the Evil,"""Visha"" Viktorya",
+Anime Character,Witch Hat Atelier,Agott,
+Anime Character,Kaguya-Sama: Love is War,Ai Hayasaka,
+Anime Character,Oshi No Ko,Ai Hoshino,
+Anime Character,Overlord,Ainz Ooal Gown,
+Anime Character,DanDaDan,Aira Shiratori,
+Anime Character,Bleach,Aizen,
+Anime Character,Akame ga Kill,Akame,
+Anime Character,Oshi No Ko,Akane Kurokawa,
+Anime Character,Chainsaw Man,Aki,
+Anime Character,Overlord,Albedo,
+Anime Character,My Hero Academia,All Might,
+Anime Character,Full Metal Alchemist Brotherhood,Alphonse Elric,
+Anime Character,My Dress Up Darling,Amane Himeno,
+Anime Character,Re:Zero,Anastasia,
+Anime Character,Gurren Lagann,Anti-Spiral,
+Anime Character,Spy x Family,Anya,
+Anime Character,Konosuba,Aqua,
+Anime Character,Oshi No Ko,Aqua Hoshino,
+Anime Character,Fate/Stay Night,Archer,
+Anime Character,Attack on Titan,Armin Arlelt,
+Anime Character,Fate/Stay Night,Artoria Pendragon (Saber),
+Anime Character,Pokemon,Ash,
+Anime Character,Princess Mononoke,Ashitaka,
+Anime Character,Black Clover,Asta,
+Anime Character,Fate/Apocrypha,Astolfo,
+Anime Character,Neon Genesis Evangelion,Asuka Langley Soryu,
+Anime Character,Sword Art Online,Asuna,
+Anime Character,Bungou Stray Dogs,Atsushi,
+Anime Character,Tonikaku Kawaii,Aurora,
+Anime Character,Tonikaku Kawaii,Aya Arisugawa,
+Anime Character,Great Teacher Onizuka,Azusa Fuyutsuki,
+Anime Character,My Hero Academia,Bakugou,
+Anime Character,One Punch Man,Black Sperm,
+Anime Character,Pokemon,Blastoise,
+Anime Character,Spy x Family,Bond,
+Anime Character,One Punch Man,Boros,
+Anime Character,Boruto: Naruto Next Generations,Boruto,
+Anime Character,Pokemon,Bulbasaur,
+Anime Character,Code Geass,C.C.,
+Anime Character,Howl's Moving Castle,Calcifer,
+Anime Character,My Neighbor Totoro,Catbus,
+Anime Character,Dragon Ball,Cell,
+Anime Character,Pokemon,Charizard,
+Anime Character,Tonikaku Kawaii,Charlotte,
+Anime Character,Spirited Away,Chihiro,
+Anime Character,Kaguya-Sama: Love is War,Chika Fujiwara,
+Anime Character,Tonikaku Kawaii,Chitose Kaginoji,
+Anime Character,Witch Hat Atelier,Coco,
+Anime Character,Witch Hat Atelier,Coco's Brushbuddy,
+Anime Character,Detective Conan,Conan,
+Anime Character,Spy x Family,Damian Desmond,
+Anime Character,Konosuba,Darkness,
+Anime Character,Cyberpunk Edgerunners,David Martinez,
+Anime Character,Bungou Stray Dogs,Dazai,
+Anime Character,My Hero Academia,Deku,
+Anime Character,Overlord,Demiurge,
+Anime Character,Chainsaw Man,Denji,
+Anime Character,Mob Psycho 100,Dimple,
+Anime Character,Jojo's Bizzare Adventure,Dio Brando,
+Anime Character,Porco Rosso,Donald Curtis,
+Anime Character,Spy x Family,Donavan Desmond,
+Anime Character,Doraemon,Doraemon,
+Anime Character,Mashle,Dot,
+Anime Character,Re:Zero,Echidna - Witch of Greed,
+Anime Character,Full Metal Alchemist Brotherhood,Edward Elric,
+Anime Character,Pokemon,Eevee,
+Anime Character,Great Teacher Onizuka,Eikichi Onizuka,
+Anime Character,Frieren,Eisen,
+Anime Character,One Punch Man,Elder Centipede,
+Anime Character,Ancient Magus Bride,Elias Ainsworth,
+Anime Character,Re:Zero,Emilia,
+Anime Character,The Promised Neverland,Emma,
+Anime Character,Attack on Titan,Eren Yeager,
+Anime Character,Full Metal Alchemist Brotherhood,Father,
+Anime Character,Re:Zero,Felix,
+Anime Character,Frieren,Fern,
+Anime Character,The Rising of the Shield Hero,Filo,
+Anime Character,Mashle,Finn Ames,
+Anime Character,Porco Rosso,Fio Piccolo,
+Anime Character,Spy x Family,Frankly Franklin (aka Chud),
+Anime Character,Frieren: Beyond Journey's End,Frieren,
+Anime Character,Dragon Ball,Frieza,
+Anime Character,Hell's Paradise,Gabimaru,
+Anime Character,One Punch Man,Garou,
+Anime Character,Dr. Stone,Gen Asagiri,
+Anime Character,Neon Genesis Evangelion,Gendo Ikari,
+Anime Character,One Punch Man,Genos,
+Anime Character,Fate/Stay Night,Gilgamesh,
+Anime Character,Gintama,Gintoki Sakata,
+Anime Character,Jojo's Bizzare Adventure,Giorno Giovanna,
+Anime Character,Hunter x Hunter,Gon Freccs,
+Anime Character,Berserk,Griffith,
+Anime Character,Berserk,Guts,
+Anime Character,Spirited Away,Haku,
+Anime Character,Toilet Bound Hanako-Kun,Hanano-kun,
+Anime Character,Beastars,Haru,
+Anime Character,Mashle,Headmaster Wahlberg,
+Anime Character,Frieren,Heiter,
+Anime Character,Frieren,Himmel,
+Anime Character,Naruto,Hinata,
+Anime Character,Odd Taxi,Hiroshi Odokawa (the Walrus),
+Anime Character,Hunter x Hunter,Hisoka,
+Anime Character,Komi Can't Communicate,Hitohito Tadano,
+Anime Character,Madoka Magica,Homura,
+Anime Character,Horimiya,Hori Kyouko,
+Anime Character,Howl's Moving Castle,Howl,
+Anime Character,Blue Lock,Hyoma Chigiri,
+Anime Character,Bleach,Ichigo Kurosaki,
+Anime Character,Mashle,Innocent Zero,
+Anime Character,Demon Slayer,Inosuke,
+Anime Character,Kiki's Delivery Service,Jiji,
+Anime Character,Apothecary Diaries,Jinshi,
+Anime Character,Jojo's Bizzare Adventure,Jonathan Joestar,
+Anime Character,Jojo's Bizzare Adventure,Joseph Joestar,
+Anime Character,Jojo's Bizzare Adventure,Josuke Higashikata,
+Anime Character,Jojo's Bizzare Adventure,Jotaro Kujo,
+Anime Character,Re:Zero,Julius,
+Anime Character,Bunny Girl Senpai,Kaede Azusagawa,
+Anime Character,Kaiju No.8,Kafka Hibino,
+Anime Character,Kaguya-Sama: Love is War,"Kaguya Shinomiya (Shirogane, recently)",
+Anime Character,Naruto,Kakashi,
+Anime Character,Gurren Lagann,Kamina,
+Anime Character,Oshi No Ko,Kana Arima,
+Anime Character,Tonikaku Kawaii,Kaname Arisugawa,
+Anime Character,Your Lie in April,Kaori Miyazono,
+Anime Character,Mob Psycho 100,Katsuya Serizawa,
+Anime Character,Neon Genesis Evangelion,Kaworu Nagisa,
+Anime Character,Konosuba,Kazuma Satou,
+Anime Character,Mob Psycho 100,Keiji Mogami,
+Anime Character,DanDaDan,"Ken ""Okarun"" Takakura",
+Anime Character,Tokyo Ghoul,Ken Kaneki,
+Anime Character,Kiki's Delivery Service,Kiki,
+Anime Character,Hunter x Hunter,Killua,
+Anime Character,One Punch Man,King,
+Anime Character,Sword Art Online,Kirito,
+Anime Character,Classroom of the Elite,Kiyotaka Ayanokoji,
+Anime Character,Miss Kobayashi's Dragon Maid,Kobayashi,
+Anime Character,Chainsaw Man,Kobeni's Car,
+Anime Character,Assassination Classroom,Koro-sensei,
+Anime Character,My Deer Friend Nokotan,Koshi-tan,
+Anime Character,Your Lie in April,Kousei Arima,
+Anime Character,Dragon Ball,Krillin,
+Anime Character,Hunter x Hunter,Kurapika,
+Anime Character,Death Note,L,
+Anime Character,Princess Mononoke,Lady Eboshi,
+Anime Character,Mashle,Lance,
+Anime Character,Beastars,Legoshi,
+Anime Character,Code Geass,Lelouch,
+Anime Character,Mashle,Lemon,
+Anime Character,Hunter x Hunter,Leorio,
+Anime Character,Attack on Titan,Levi Ackermann,
+Anime Character,Death Note,Light Yagami,
+Anime Character,Spy x Family,Loid Forger,
+Anime Character,Konosuba,Lord Alderp,
+Anime Character,Pokemon,Lucario,
+Anime Character,Cyberpunk Edgerunners,Lucy,
+Anime Character,Lupin III,Lupin,
+Anime Character,Porco Rosso,Madame Gina,
+Anime Character,Madoka Magica,Madoka,
+Anime Character,The Angel Next Door Spoils Me Rotten,Mahiru Shiina,
+Anime Character,Jujutsu Kaisen,Mahito,
+Anime Character,Nichijou,Mai,
+Anime Character,My Neighbor Totoro,Mai Kusakabe,
+Anime Character,Bunny Girl Senpai,Mai Sakurajima,
+Anime Character,Soul Eater,Maka Albarn,
+Anime Character,Kaguya-Sama: Love is War,Maki Shoji,
+Anime Character,Chainsaw Man,Makima,
+Anime Character,Apothecary Diaries,Maomao,
+Anime Character,My Dress Up Darling,Marin Kitagawa,
+Anime Character,Mashle,Mash,
+Anime Character,Fate/Grand Order,Mash Kyrielight,
+Anime Character,Jujutsu Kaisen,Megumi Fushiguro,
+Anime Character,Konosuba,Megumin,
+Anime Character,Blue Lock,Meguru Bachira,
+Anime Character,The Seven Deadly Sins,Meliodas,
+Anime Character,Oshi No Ko,Mem-Cho,
+Anime Character,Pokemon,Mewtwo,
+Anime Character,Attack on Titan,Mikasa Ackermann,
+Anime Character,Your Name,Miki Onodera,
+Anime Character,Kaguya-Sama: Love is War,Miko Iino,
+Anime Character,Quintessential Quintuplets,Miku Nanako,
+Anime Character,Nichijou,Mio,
+Anime Character,Death Note,Misa Aname,
+Anime Character,Neon Genesis Evangelion,Misato Katsuragi,
+Anime Character,Pokemon,Misty,
+Anime Character,Your Name,Mitsuha Miyamizu,
+Anime Character,Kaguya-Sama: Love is War,Miyuki Shirogane,
+Anime Character,DanDaDan,Momo Ayase,
+Anime Character,One Piece,Monkey D. Luffy,
+Anime Character,Nichijou,Mr. Sakamoto,
+Anime Character,Mob Psycho 100,Musashi Goda (Body Improvement Club Guy),
+Anime Character,Demon Slayer,Muzan,
+Anime Character,Kaguya-Sama: Love is War,Nagisa Kashiwagi,
+Anime Character,Assassination Classroom,Nagisa Shiota,
+Anime Character,Komi Can't Communicate,Najimi Osana,
+Anime Character,One Piece,Nami,
+Anime Character,Nichijou,Nano,
+Anime Character,The Rising of the Shield Hero,Naofumi Iwatani,
+Anime Character,Tonikaku Kawaii,Naoko Yanagi (Ms. Yanagi),
+Anime Character,Naruto,Naruto,
+Anime Character,Tonikaku Kawaii,Nasa Yuzaki,
+Anime Character,Fairy Tail,Natsu Dragneel,
+Anime Character,Nausicaä of the Valley of the Wind,Nausicaä ,
+Anime Character,Call of the Night,Nazuna Nanakusa,
+Anime Character,Toilet Bound Hanako-Kun,Nene Yashiro,
+Anime Character,Demon Slayer,Nezuko,
+Anime Character,Jujutsu Kaisen,Nobara Kugisaki,
+Anime Character,Doraemon,Nobita,
+Anime Character,Black Clover,Noelle Silva,
+Anime Character,My Deer Friend Nokotan,Nokotan,
+Anime Character,My Hero Academia,Ochaco Uraraka,
+Anime Character,Witch Hat Atelier,Olruggio,
+Anime Character,Panty & Stocking,Panty,
+Anime Character,Kaguya-Sama: Love is War,Papa Shirogane,
+Anime Character,Lupita: Castle in the Sky,Pau,
+Anime Character,Dragon Ball,Piccolo,
+Anime Character,Pokemon,Pikachu,
+Anime Character,Ponyo,Ponyo,
+Anime Character,Porco Rosso,Porco,
+Anime Character,Chainsaw Man,Power,
+Anime Character,Re:Zero,Puck,
+Anime Character,Witch Hat Atelier,Qifrey,
+Anime Character,Mashle,Raine Ames,
+Anime Character,Re:Zero,Ram,
+Anime Character,The Rising of the Shield Hero,Raphtalia,
+Anime Character,Neon Genesis Evangelion,Rei Ayanami,
+Anime Character,Re:Zero,Reid,
+Anime Character,Mob Psycho 100,Reigen Arataka,
+Anime Character,Re:Zero,Reinhart,
+Anime Character,Re:Zero,Rem,
+Anime Character,Chainsaw Man,Reze,
+Anime Character,Witch Hat Atelier,Riche,
+Anime Character,"Love, Chuunibyo, and Other Delusions",Rikka,
+Anime Character,Blue Lock,Rin Itoshi,
+Anime Character,Fate/Stay Night,Rin Tohsaka,
+Anime Character,Bunny Girl Senpai,Rio Futaba,
+Anime Character,Mob Psycho 100,Ritsu Kageyama,
+Anime Character,One Piece,Roronoa Zoro,
+Anime Character,Mushoku Tensei,Roxy,
+Anime Character,Full Metal Alchemist Brotherhood,Roy Mustang,
+Anime Character,Oshi No Ko,Ruby Hoshino,
+Anime Character,Mushoku Tensei,Rudeus Greyrat,
+Anime Character,Jujutsu Kaisen,Ryomen Sukuna,
+Anime Character,Death Note,Ryuk,
+Anime Character,Kill la Kill,Ryuuko,
+Anime Character,One Punch Man,Saitama,
+Anime Character,Naruto,Sakura,
+Anime Character,Bunny Girl Senpai,Sakuta Azusagawa,
+Anime Character,Princess Mononoke,San,
+Anime Character,One Piece,Sanji,
+Anime Character,Re:Zero,Satella - Witch of Envy,
+Anime Character,Jujutsu Kaisen,Satoru Gojo,
+Anime Character,My Neighbor Totoro,Satsuki Kusakabe,
+Anime Character,One Punch Man,Sea King,
+Anime Character,Whisper of the Heart,Seiji Amasawa,
+Anime Character,DanDaDan,Seiko Ayase (Santa Dodoria),
+Anime Character,Blue Lock,Seishiro Nagi,
+Anime Character,Dr. Stone,Senku,
+Anime Character,Overlord,Shalltear,
+Anime Character,One Piece,Shanks,
+Anime Character,Lupita: Castle in the Sky,Sheeta,
+Anime Character,Gurren Lagann,Shimon,
+Anime Character,Neon Genesis Evangelion,Shinji,
+Anime Character,Fire Force,Shinra Kusakabe,
+Anime Character,Deadman Wonderland,Shiro,
+Anime Character,No Game No Life,Shiro (aka the loli),
+Anime Character,Whisper of the Heart,Shizuku,
+Anime Character,Mob Psycho 100,Sho Suzuki,
+Anime Character,Komi Can't Communicate,Shoko Komi,
+Anime Character,Bunny Girl Senpai,Shoko Makinohara,
+Anime Character,Haikyuu,Shoyo Hinata,
+Anime Character,Dragon Ball,Son Gohan,
+Anime Character,Dragon Ball,Son Goku,
+Anime Character,Howl's Moving Castle,Sophie Hatter,
+Anime Character,No Game No Life,Sora (aka the chud),
+Anime Character,Ponyo,Sousuke,
+Anime Character,One Punch Man,Speed-o'-Sound Sonic,
+Anime Character,Cowboy Bebop,Spike Spiegel,
+Anime Character,Pokemon,Squirtle,
+Anime Character,Frieren,Stark,
+Anime Character,Panty & Stocking,Stocking,
+Anime Character,Re:Zero,Subaru Natsuki,
+Anime Character,Jujutsu Kaisen,Suguru Geto,
+Anime Character,Solo Leveling,Sung Jinwoo,
+Anime Character,Naruto,Susuke,
+Anime Character,Mushoku Tensei,Sylphy,
+Anime Character,Toradora,Taiga Aisaka,
+Anime Character,Your Name,Taki Tachibana,
+Anime Character,Demon Slayer,Tanjiro,
+Anime Character,The Saga of Tanya the Evil,Tanya von Degurechaff,
+Anime Character,Witch Hat Atelier,Tartah,
+Anime Character,One Punch Man,Tatsumaki,
+Anime Character,Witch Hat Atelier,Tetia,
+Anime Character,Whisper of the Heart/The Cat Returns,The Baron,
+Anime Character,Vinland Saga,Thorfinn,
+Anime Character,Tonikaku Kawaii,Toast,
+Anime Character,Haikyuu,Tobio Kageyama,
+Anime Character,My Hero Academia,Todoroki,
+Anime Character,My Hero Academia,Toga,
+Anime Character,Mob Psycho 100,Toichiro Suzuki,
+Anime Character,Tonikaku Kawaii,Tokiko Tsukuyomi,
+Anime Character,Kiki's Delivery Service,Tombo Kopoli,
+Anime Character,One Piece,Tony Tony Choppa,
+Anime Character,My Neighbor Totoro,Totoro,
+Anime Character,Dr. Stone,Tsukasa,
+Anime Character,Tonikaku Kawaii,Tsukasa Yuzaki,
+Anime Character,DanDaDan,Turbo Granny,
+Anime Character,Sailor Moon,Usagi Tsukino,
+Anime Character,One Piece,Usopp,
+Anime Character,Dragon Ball,Vegeta,
+Anime Character,My Dress Up Darling,Wakana Gojou,
+Anime Character,Howl's Moving Castle,Witch of the Waste,
+Anime Character,Konosuba,Wiz,
+Anime Character,Noragami,Yato,
+Anime Character,Blue Lock,Yoichi Isagi,
+Anime Character,Gurren Lagann,Yoko,
+Anime Character,Spy x Family,Yor Briar,
+Anime Character,Your Name,Yotsuha Miyamizu,
+Anime Character,Kaguya-Sama: Love is War,Yu Ishigami,
+Anime Character,Spirited Away,Yubaba,
+Anime Character,Jujutsu Kaisen,Yuji Itadori,
+Anime Character,Black Clover,Yuno,
+Anime Character,Future Diary,Yuno Gasai,
+Anime Character,Konosuba,Yunyun,
+Anime Character,Spy x Family,Yuri Briar,
+Anime Character,Nichijou,Yuuko,
+Anime Character,Spirited Away,Zeniba,
+Anime Character,Demon Slayer,Zenitsu,
+Anime Character,Inuyashiki,Donald Trump,
+`;
+
+        let currentDataset = [];
+        let roomCode = null;
+        let currentUser = null;
+        let myPlayerIndex = -1;
+        let db = null;
+        let auth = null;
+        let roomUnsubscribe = null;
+        let timerInterval = null;
+        let activeRoomData = null;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'headsup-game-default';
+        const firebaseConfig = {
+            apiKey: "AIzaSyAG0CuCK01Z2O1hj212OBcLB6gtimIo82g",
+            authDomain: "heads-up-but.firebaseapp.com",
+            databaseURL: "https://heads-up-but-default-rtdb.firebaseio.com",
+            projectId: "heads-up-but",
+            storageBucket: "heads-up-but.firebasestorage.app",
+            messagingSenderId: "792552718238",
+            appId: "1:792552718238:web:fd7133eb7fc0a9e725a08f"
+        };
+
+
+        // Helper to get consistent room references
+        function getRoomRef(code) {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+        }
+
+        window.addEventListener('load', async () => {
+            lucide.createIcons();
+            parseCSV(DEFAULT_CSV);
+            document.getElementById('csv-textarea').value = DEFAULT_CSV;
+
+            // Initialize Firebase
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    currentUser = (await signInWithCustomToken(auth, __initial_auth_token)).user;
+                } else {
+                    currentUser = (await signInAnonymously(auth)).user;
+                }
+            } catch (err) {
+                console.warn("Firebase running in offline or demo fallback mode:", err);
+            }
+
+            // Check URL for join code
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeParam = urlParams.get('room');
+            if (codeParam) {
+                switchLobbyTab('join');
+                document.getElementById('join-code').value = codeParam.toUpperCase();
+            }
+        });
+
+        // Timer logic
+        function handleTimerSync(roomData) {
+            const timerDisplay = document.getElementById('timer-display');
+            if (timerDisplay) {
+                timerDisplay.textContent = roomData.timer;
+            }
+
+            // ONLY the host (player index 0) manages the interval
+            // console.log("I am player ",myPlayerIndex)
+            if (myPlayerIndex === 0) {
+                if (roomData.timerActive && roomData.timer > 0) {
+                    startHostTimer();
+                } else {
+                    stopHostTimer();
+                }
+            }
+        }
+
+        function startHostTimer() {
+            if (timerInterval) return;
+
+            timerInterval = setInterval(async () => {
+                if (!roomCode || !activeRoomData) return;
+                const roomRef = getRoomRef(roomCode);
+                const docSnap = await getDoc(roomRef);
+                
+                if (!docSnap.exists()) {
+                    stopHostTimer();
+                    return;
+                }
+
+                const currentTimer = docSnap.data().timer;
+
+                if (currentTimer >= 1) {
+                    await updateDoc(roomRef, {
+                        timer: currentTimer - 1
+                    });
+                }
+                if(currentTimer < 1){
+                    // Timer hit zero: stop interval and advance to the next player's turn
+                    stopHostTimer();
+                    
+                    const roomRef = getRoomRef(roomCode);
+
+                    await updateDoc(roomRef, {
+                        timer: 60,            // Reset timer for the next turn
+                        timerActive: true,    // Keep the timer running for the new turn
+                        turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length  // Rotate to next player
+                    });
+                }
+                
+            }, 1000);
+        }
+
+        function stopHostTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimerButton(isTimerActive) {
+            const btn = document.getElementById('btn-timer-toggle');
+            if (!btn) return;
+
+            if (isTimerActive) {
+                btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> Pause Timer`;
+            } else {
+                btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Resume Timer`;
+            }
+
+            // Refresh Lucide icons so the new play/pause icon renders properly
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+        // Parse CSV with quote handling
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const parsed = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || line.split(',');
+
+                if (matches.length >= 3) {
+                    const category = matches[0].trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                    const show = matches[1].trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                    const character = matches[2].trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                    parsed.push({ category, show, character });
+                }
+            }
+
+            if (parsed.length >= 4) {
+                currentDataset = parsed;
+                document.getElementById('deck-status-count').innerText = `${currentDataset.length} Characters Larped`;
+                return true;
+            } else {
+                showToast("CSV must contain at least 4 valid rows of characters!");
+                return false;
+            }
+        }
+
+        // CSV Modal Controls
+        window.toggleCSVModal = (show) => {
+            document.getElementById('csv-modal').classList.toggle('hidden', !show);
+        };
+
+        window.handleFileUpload = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                document.getElementById('csv-textarea').value = evt.target.result;
+            };
+            reader.readAsText(file);
+        };
+
+        window.resetDefaultCSV = () => {
+            document.getElementById('csv-textarea').value = DEFAULT_CSV;
+            parseCSV(DEFAULT_CSV);
+            showToast("Reset to default anime deck");
+        };
+
+        window.applyCSV = () => {
+            const val = document.getElementById('csv-textarea').value;
+            if (parseCSV(val)) {
+                toggleCSVModal(false);
+                showToast("Successfully applied custom dataset!");
+            }
+        };
+
+        // Navigation Tab Switcher
+        window.switchLobbyTab = (tab) => {
+            const isCreate = tab === 'create';
+            document.getElementById('form-create').classList.toggle('hidden', !isCreate);
+            document.getElementById('form-join').classList.toggle('hidden', isCreate);
+            
+            document.getElementById('btn-tab-create').className = isCreate 
+                ? "py-2.5 text-sm font-bold rounded-lg transition bg-purple-600 text-white shadow-md"
+                : "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+            document.getElementById('btn-tab-join').className = !isCreate 
+                ? "py-2.5 text-sm font-bold rounded-lg transition bg-emerald-600 text-white shadow-md"
+                : "py-2.5 text-sm font-bold rounded-lg transition text-slate-400 hover:text-white";
+        };
+
+        window.createRoom = async () => {
+            const nameInput = document.getElementById('host-name').value.trim();
+            if (!nameInput) return showToast("Please enter your name!");
+            if (currentDataset.length < 4) return showToast("Dataset must have at least 4 characters!");
+
+            roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            myPlayerIndex = 0;
+
+            const roomRef = getRoomRef(roomCode);
+            const initialData = {
+                code: roomCode,
+                status: 'waiting',
+                turnIndex: 0,
+                timer: 60,
+                timerActive: false,
+                dataset: currentDataset,
+                players: [
+                    { id: currentUser.uid, name: nameInput, score: 0, assignedChar: null, revealed: false }
+                ],
+                clues: []
+            };
+
+            await setDoc(roomRef, initialData);
+            subscribeToRoom();
+            showToast(`Room created! Code: ${roomCode}`);
+        };
+
+        window.joinRoom = async () => {
+            const nameInput = document.getElementById('join-name').value.trim();
+            const codeInput = document.getElementById('join-code').value.trim().toUpperCase();
+
+            if (!nameInput) return showToast("Please enter your name!");
+            if (!codeInput) return showToast("Please enter a larp code!");
+
+            roomCode = codeInput;
+            const roomRef = getRoomRef(roomCode);
+            const snap = await getDoc(roomRef);
+
+            if (!snap.exists()) {
+                return showToast("Room not found! Check code.");
+            }
+
+            const data = snap.data();
+            if (data.players.length >= 4) {
+                return showToast("Room is already full (Max 4 players)!");
+            }
+
+            myPlayerIndex = data.players.length;
+            const updatedPlayers = [...data.players, { id: currentUser.uid, name: nameInput, score: 0, assignedChar: null, revealed: false }];
+            
+            await updateDoc(roomRef, { players: updatedPlayers });
+            subscribeToRoom();
+        };
+
+        function subscribeToRoom() {
+            if (roomUnsubscribe) roomUnsubscribe();
+
+            const roomRef = getRoomRef(roomCode);
+            roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
+                if (!snapshot.exists()) return;
+                const data = snapshot.data();
+                activeRoomData = data;
+
+                updateNavbar(data.code);
+                if (data.status === 'waiting') {
+                    renderWaitingRoom(data);
+                } else if (data.status === 'playing') {
+                    renderGameScreen(data);
+                }
+
+                handleTimerSync(data);
+
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+            });
+        }
+
+        function updateNavbar(code) {
+            document.getElementById('nav-room-badge').classList.remove('hidden');
+            document.getElementById('nav-room-badge').classList.add('flex');
+            document.getElementById('nav-room-code').innerText = code;
+        }
+
+        function renderWaitingRoom(data) {
+            document.getElementById('screen-lobby').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-waiting').classList.remove('hidden');
+
+            document.getElementById('waiting-room-code').innerText = data.code;
+
+            const playerRankNames = ["Larpotaro", "The Larpdog", "The Larpkey", "The Larpheasant"];
+
+            for (let i = 0; i < 4; i++) {
+                const slotEl = document.getElementById(`slot-${i}`);
+                const p = data.players[i];
+                if (p) {
+                    slotEl.className = "bg-slate-900 border border-purple-500/50 rounded-xl p-4 flex items-center space-x-3 glow-purple";
+                    slotEl.innerHTML = `
+                        <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-lg">${i+1}</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-purple-400 font-semibold uppercase">${playerRankNames[i]} ${i === 0 ? '(Host)' : ''}</p>
+                            <p class="text-base font-bold text-white">${escapeHtml(p.name)} ${p.id === currentUser.uid ? '<span class="text-xs text-slate-400">(You)</span>' : ''}</p>
+                        </div>
+                    `;
+                } else {
+                    slotEl.className = "bg-slate-950 border border-slate-800/80 rounded-xl p-4 flex items-center space-x-3";
+                    slotEl.innerHTML = `
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-500 flex items-center justify-center font-bold">${i+1}</div>
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-500 font-semibold uppercase">${playerRankNames[i]}</p>
+                            <p class="text-sm font-bold text-slate-500 italic">Waiting for Larper...</p>
+                        </div>
+                    `;
+                }
+            }
+
+            const startBtn = document.getElementById('btn-start-game');
+            if (myPlayerIndex === 0) {
+                startBtn.disabled = data.players.length < 2;
+                if (data.players.length < 2) {
+                    startBtn.innerText = `You Need at Least 2 Larpers to Start (${data.players.length}/4)`;
+                } else {
+                    startBtn.innerText = "Start Larps Up Game!";
+                }
+            } else {
+                startBtn.disabled = true;
+                startBtn.innerText = "Waiting for Larpotaro (Host) to Start...";
+            }
+        }
+
+        window.startGame = async () => {
+            if (!activeRoomData || activeRoomData.players.length < 2) {
+                return showToast("You need at least 2 larpers to start!");
+            }
+
+            const dataset = activeRoomData.dataset && activeRoomData.dataset.length >= 4 ? activeRoomData.dataset : currentDataset;
+            const shuffled = [...dataset].sort(() => 0.5 - Math.random());
+            
+            const updatedPlayers = activeRoomData.players.map((p, idx) => ({
+                ...p,
+                assignedChar: shuffled[idx],
+                revealed: false
+            }));
+
+            const roomRef = getRoomRef(roomCode);
+            await updateDoc(roomRef, {
+                status: 'playing',
+                players: updatedPlayers,
+                turnIndex: 0,
+                timer: 60,
+                timerActive: true
+            });
+        };
+
+        function renderGameScreen(data) {
+            document.getElementById('screen-lobby').classList.add('hidden');
+            document.getElementById('screen-waiting').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+
+            const currentTurnPlayer = data.players[data.turnIndex];
+            document.getElementById('game-turn-player').innerText = currentTurnPlayer ? currentTurnPlayer.name : 'Unknown';
+
+            const mins = Math.floor(data.timer / 60).toString().padStart(2, '0');
+            const secs = (data.timer % 60).toString().padStart(2, '0');
+            document.getElementById('game-timer').innerText = `${mins}:${secs}`;
+
+            //Update pause/resume botton UI
+            updateTimerButton(data.timerActive);
+
+            const gridEl = document.getElementById('cards-grid');
+            gridEl.innerHTML = '';
+
+            data.players.forEach((p, idx) => {
+                const isMe = idx === myPlayerIndex;
+                const isTurn = idx === data.turnIndex;
+                const char = p.assignedChar;
+
+                const card = document.createElement('div');
+                card.className = `bg-slate-900 border ${isTurn ? 'border-purple-500 ring-2 ring-purple-500/50' : 'border-slate-800'} rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden transition`;
+
+                let cardContentHtml = '';
+
+                if (isMe && !p.revealed) {
+                    cardContentHtml = `
+                        <div class="bg-gradient-to-br from-slate-950 to-purple-950/40 border border-purple-500/30 rounded-xl p-6 text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center">
+                                <i data-lucide="eye-off" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs uppercase font-bold text-purple-400 tracking-widest">ON YOUR HEAD!</span>
+                                <h4 class="text-xl font-extrabold text-white mt-1">???</h4>
+                            </div>
+                            <p class="text-xs text-slate-400">Ask questions to guess who you're larping!</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="revealMyCharacter(${idx})" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">Give Up</button>
+                            <button onclick="recordCorrectGuess(${idx})" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition shadow-md">Larp Successful (+1)</button>
+                        </div>
+                    `;
+                } else {
+                    cardContentHtml = `
+                        <div class="bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 inline-block">${escapeHtml(char?.category || 'Category')}</span>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide">${escapeHtml(char?.show || 'Show')}</p>
+                            <h4 class="text-xl font-black text-white tracking-tight">${escapeHtml(char?.character || 'Character')}</h4>
+                        </div>
+                        ${isMe && p.revealed ? '<p class="text-xs text-center text-amber-400 font-semibold">Zoned out of the Larp!</p>' : ''}
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full ${isTurn ? 'bg-purple-400 animate-ping' : 'bg-slate-600'}"></span>
+                            <span class="font-bold text-sm text-slate-200">${escapeHtml(p.name)} ${isMe ? '(You)' : ''}</span>
+                        </div>
+                        <span class="text-xs font-extrabold bg-slate-800 px-2.5 py-1 rounded-full text-slate-300 border border-slate-700">w larps: ${p.score || 0}</span>
+                    </div>
+                    ${cardContentHtml}
+                `;
+
+                gridEl.appendChild(card);
+            });
+
+            const scoreEl = document.getElementById('scoreboard-list');
+            scoreEl.innerHTML = data.players.map(p => `
+                <div class="flex justify-between items-center text-xs py-1.5 px-3 bg-slate-950 rounded-lg border border-slate-800">
+                    <span class="font-bold text-slate-300">${escapeHtml(p.name)}</span>
+                    <span class="font-mono font-black text-purple-400">${p.score || 0} successful larps</span>
+                </div>
+            `).join('');
+
+            const clueLog = document.getElementById('clue-log');
+            if (data.clues && data.clues.length > 0) {
+                clueLog.innerHTML = data.clues.map(c => `
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
+                        <span class="font-bold text-purple-400 text-xs">${escapeHtml(c.sender)}:</span>
+                        <span class="text-slate-200 text-xs ml-1">${escapeHtml(c.text)}</span>
+                    </div>
+                `).join('');
+                clueLog.scrollTop = clueLog.scrollHeight;
+            }
+
+            lucide.createIcons();
+        }
+
+        // Gameplay actions
+        window.revealMyCharacter = async (idx) => {
+            if (!activeRoomData) return;
+            const updatedPlayers = [...activeRoomData.players];
+            updatedPlayers[idx].revealed = true;
+
+            const roomRef = getRoomRef(roomCode);
+            await updateDoc(roomRef, { players: updatedPlayers });
+            showToast("Zoned out of the Larp!");
+        };
+
+        window.recordCorrectGuess = async (idx) => {
+            if (!activeRoomData) return;
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+            const updatedPlayers = [...activeRoomData.players];
+            updatedPlayers[idx].score = (updatedPlayers[idx].score || 0) + 1;
+
+            const dataset = activeRoomData.dataset || currentDataset;
+            const randomChar = dataset[Math.floor(Math.random() * dataset.length)];
+            updatedPlayers[idx].assignedChar = randomChar;
+            updatedPlayers[idx].revealed = true;
+
+            const roomRef = getRoomRef(roomCode);
+            await updateDoc(roomRef, { 
+                players: updatedPlayers,
+                turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length
+            });
+    
+            showToast("Awesome! +1 Point added!");
+        };
+
+        window.toggleTimer = async () => {
+            if (!roomCode) return;
+
+            const roomRef = getRoomRef(roomCode);
+            try {
+                const docSnap = await getDoc(roomRef);
+                if (!docSnap.exists()) return;
+
+                const roomData = docSnap.data();
+                
+                await updateDoc(roomRef, {
+                    timerActive: !roomData.timerActive
+                });
+            } catch (err) {
+                console.error("Error toggling timer:", err);
+            }
+        };
+
+        window.nextTurn = async () => {
+            if (!activeRoomData) return;
+            const roomRef = getRoomRef(roomCode);
+            await updateDoc(roomRef, {
+                turnIndex: (activeRoomData.turnIndex + 1) % activeRoomData.players.length,
+                timer: 60
+            });
+        };
+
+        window.nextRound = async () => {
+            if (!activeRoomData) return;
+            const dataset = activeRoomData.dataset || currentDataset;
+            const shuffled = [...dataset].sort(() => 0.5 - Math.random());
+
+            const updatedPlayers = activeRoomData.players.map((p, idx) => ({
+                ...p,
+                assignedChar: shuffled[idx],
+                revealed: false
+            }));
+
+            const roomRef = getRoomRef(roomCode);
+            await updateDoc(roomRef, {
+                players: updatedPlayers,
+                turnIndex: 0,
+                timer: 60
+            });
+
+            showToast("Dealt fresh characters to all players!");
+        };
+
+        window.submitClue = async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('input-clue');
+            const text = input.value.trim();
+            if (!text || !activeRoomData) return;
+
+            const myName = activeRoomData.players[myPlayerIndex]?.name || 'Player';
+            const newClues = [...(activeRoomData.clues || []), { sender: myName, text }];
+
+            input.value = '';
+            const roomRef = getRoomRef(roomCode);
+            await updateDoc(roomRef, { clues: newClues });
+        };
+
+        window.copyRoomCode = () => {
+            if (!roomCode) return;
+            const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast("Room Link & Code copied to clipboard!");
+            }).catch(() => {
+                showToast(`Larp Code: ${roomCode}`);
+            });
+        };
+
+        window.goHome = () => {
+            if (confirm("Return to home screen?")) {
+                location.reload();
+            }
+        };
+
+        window.leaveRoom = () => {
+            location.reload();
+        };
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
