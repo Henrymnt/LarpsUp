@@ -737,14 +737,19 @@ Anime Character,Inuyashiki,Donald Trump,
                 } else {
                     currentUser = (await signInAnonymously(auth)).user;
                 }
+
+                //db security
+                const appCheck = initializeAppCheck(app, {
+                provider: new ReCaptchaV3Provider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
+                isTokenAutoRefreshEnabled: true
+
+            }); 
+
             } catch (err) {
                 console.warn("Firebase running in offline or demo fallback mode:", err);
             }
 
-             const appCheck = initializeAppCheck(app, {
-                provider: new ReCaptchaV3Provider('6LdQ98UtAAAAALw_AHyrch_O3b4L6JAfoIb50dgq'),
-                isTokenAutoRefreshEnabled: true
-            }); 
+            
 
             // Check URL for join code
             const urlParams = new URLSearchParams(window.location.search);
