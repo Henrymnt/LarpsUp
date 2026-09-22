@@ -356,344 +356,430 @@
         import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
 
         // Global dataset with provided CSV values + extra defaults
-        const DEFAULT_CSV = `Category,Show,Character,
-Anime Character,Attack on Titan,Colossal Titan,
-Anime Character,Re:Zero,"""Beako"" Beatrice",
-Anime Character,DanDaDan,"""Jiji"" Enjoji",
-Anime Character,My Dress Up Darling,"""Juju"" Sajuna Inui",
-Anime Character,Mob Psycho 100,"""Mob"" Shigeo Kageyama",
-Anime Character,Mob Psycho 100,"""Teru"" Teruki Hanazawa",
-Anime Character,Nichijou,"""The Professor"" Hakase Shinonome",
-Anime Character,The Saga of Tanya the Evil,"""Visha"" Viktorya",
-Anime Character,Witch Hat Atelier,Agott,
-Anime Character,Kaguya-Sama: Love is War,Ai Hayasaka,
-Anime Character,Oshi No Ko,Ai Hoshino,
-Anime Character,Overlord,Ainz Ooal Gown,
-Anime Character,DanDaDan,Aira Shiratori,
-Anime Character,Bleach,Aizen,
-Anime Character,Akame ga Kill,Akame,
-Anime Character,Oshi No Ko,Akane Kurokawa,
-Anime Character,Chainsaw Man,Aki,
-Anime Character,Overlord,Albedo,
-Anime Character,My Hero Academia,All Might,
-Anime Character,Full Metal Alchemist Brotherhood,Alphonse Elric,
-Anime Character,My Dress Up Darling,Amane Himeno,
-Anime Character,Re:Zero,Anastasia,
-Anime Character,Gurren Lagann,Anti-Spiral,
-Anime Character,Spy x Family,Anya,
-Anime Character,Konosuba,Aqua,
-Anime Character,Oshi No Ko,Aqua Hoshino,
-Anime Character,Fate/Stay Night,Archer,
-Anime Character,Attack on Titan,Armin Arlelt,
-Anime Character,Fate/Stay Night,Artoria Pendragon (Saber),
-Anime Character,Pokemon,Ash,
-Anime Character,Princess Mononoke,Ashitaka,
-Anime Character,Black Clover,Asta,
-Anime Character,Fate/Apocrypha,Astolfo,
-Anime Character,Neon Genesis Evangelion,Asuka Langley Soryu,
-Anime Character,Sword Art Online,Asuna,
-Anime Character,Bungou Stray Dogs,Atsushi,
-Anime Character,Tonikaku Kawaii,Aurora,
-Anime Character,Tonikaku Kawaii,Aya Arisugawa,
-Anime Character,Great Teacher Onizuka,Azusa Fuyutsuki,
-Anime Character,My Hero Academia,Bakugou,
-Anime Character,One Punch Man,Black Sperm,
-Anime Character,Pokemon,Blastoise,
-Anime Character,Spy x Family,Bond,
-Anime Character,One Punch Man,Boros,
-Anime Character,Boruto: Naruto Next Generations,Boruto,
-Anime Character,Pokemon,Bulbasaur,
-Anime Character,Code Geass,C.C.,
-Anime Character,Howl's Moving Castle,Calcifer,
-Anime Character,My Neighbor Totoro,Catbus,
-Anime Character,Dragon Ball,Cell,
-Anime Character,Pokemon,Charizard,
-Anime Character,Tonikaku Kawaii,Charlotte,
-Anime Character,Spirited Away,Chihiro,
-Anime Character,Kaguya-Sama: Love is War,Chika Fujiwara,
-Anime Character,Tonikaku Kawaii,Chitose Kaginoji,
-Anime Character,Witch Hat Atelier,Coco,
-Anime Character,Witch Hat Atelier,Coco's Brushbuddy,
-Anime Character,Detective Conan,Conan,
-Anime Character,Spy x Family,Damian Desmond,
-Anime Character,Konosuba,Darkness,
-Anime Character,Cyberpunk Edgerunners,David Martinez,
-Anime Character,Bungou Stray Dogs,Dazai,
-Anime Character,My Hero Academia,Deku,
-Anime Character,Overlord,Demiurge,
-Anime Character,Chainsaw Man,Denji,
-Anime Character,Mob Psycho 100,Dimple,
-Anime Character,Jojo's Bizzare Adventure,Dio Brando,
-Anime Character,Porco Rosso,Donald Curtis,
-Anime Character,Spy x Family,Donavan Desmond,
-Anime Character,Doraemon,Doraemon,
-Anime Character,Mashle,Dot,
-Anime Character,Re:Zero,Echidna - Witch of Greed,
-Anime Character,Full Metal Alchemist Brotherhood,Edward Elric,
-Anime Character,Pokemon,Eevee,
-Anime Character,Great Teacher Onizuka,Eikichi Onizuka,
-Anime Character,Frieren,Eisen,
-Anime Character,One Punch Man,Elder Centipede,
-Anime Character,Ancient Magus Bride,Elias Ainsworth,
-Anime Character,Re:Zero,Emilia,
-Anime Character,The Promised Neverland,Emma,
-Anime Character,Attack on Titan,Eren Yeager,
-Anime Character,Full Metal Alchemist Brotherhood,Father,
-Anime Character,Re:Zero,Felix,
-Anime Character,Frieren,Fern,
-Anime Character,The Rising of the Shield Hero,Filo,
-Anime Character,Mashle,Finn Ames,
-Anime Character,Porco Rosso,Fio Piccolo,
-Anime Character,Spy x Family,Frankly Franklin (aka Chud),
-Anime Character,Frieren: Beyond Journey's End,Frieren,
-Anime Character,Dragon Ball,Frieza,
-Anime Character,Hell's Paradise,Gabimaru,
-Anime Character,One Punch Man,Garou,
-Anime Character,Dr. Stone,Gen Asagiri,
-Anime Character,Neon Genesis Evangelion,Gendo Ikari,
-Anime Character,One Punch Man,Genos,
-Anime Character,Fate/Stay Night,Gilgamesh,
-Anime Character,Gintama,Gintoki Sakata,
-Anime Character,Jojo's Bizzare Adventure,Giorno Giovanna,
-Anime Character,Hunter x Hunter,Gon Freccs,
-Anime Character,Berserk,Griffith,
-Anime Character,Berserk,Guts,
-Anime Character,Spirited Away,Haku,
-Anime Character,Toilet Bound Hanako-Kun,Hanano-kun,
-Anime Character,Beastars,Haru,
-Anime Character,Mashle,Headmaster Wahlberg,
-Anime Character,Frieren,Heiter,
-Anime Character,Frieren,Himmel,
-Anime Character,Naruto,Hinata,
-Anime Character,Odd Taxi,Hiroshi Odokawa (the Walrus),
-Anime Character,Hunter x Hunter,Hisoka,
-Anime Character,Komi Can't Communicate,Hitohito Tadano,
-Anime Character,Madoka Magica,Homura,
-Anime Character,Horimiya,Hori Kyouko,
-Anime Character,Howl's Moving Castle,Howl,
-Anime Character,Blue Lock,Hyoma Chigiri,
-Anime Character,Bleach,Ichigo Kurosaki,
-Anime Character,Mashle,Innocent Zero,
-Anime Character,Demon Slayer,Inosuke,
-Anime Character,Kiki's Delivery Service,Jiji,
-Anime Character,Apothecary Diaries,Jinshi,
-Anime Character,Jojo's Bizzare Adventure,Jonathan Joestar,
-Anime Character,Jojo's Bizzare Adventure,Joseph Joestar,
-Anime Character,Jojo's Bizzare Adventure,Josuke Higashikata,
-Anime Character,Jojo's Bizzare Adventure,Jotaro Kujo,
-Anime Character,Re:Zero,Julius,
-Anime Character,Bunny Girl Senpai,Kaede Azusagawa,
-Anime Character,Kaiju No.8,Kafka Hibino,
-Anime Character,Kaguya-Sama: Love is War,"Kaguya Shinomiya (Shirogane, recently)",
-Anime Character,Naruto,Kakashi,
-Anime Character,Gurren Lagann,Kamina,
-Anime Character,Oshi No Ko,Kana Arima,
-Anime Character,Tonikaku Kawaii,Kaname Arisugawa,
-Anime Character,Your Lie in April,Kaori Miyazono,
-Anime Character,Mob Psycho 100,Katsuya Serizawa,
-Anime Character,Neon Genesis Evangelion,Kaworu Nagisa,
-Anime Character,Konosuba,Kazuma Satou,
-Anime Character,Mob Psycho 100,Keiji Mogami,
-Anime Character,DanDaDan,"Ken ""Okarun"" Takakura",
-Anime Character,Tokyo Ghoul,Ken Kaneki,
-Anime Character,Kiki's Delivery Service,Kiki,
-Anime Character,Hunter x Hunter,Killua,
-Anime Character,One Punch Man,King,
-Anime Character,Sword Art Online,Kirito,
-Anime Character,Classroom of the Elite,Kiyotaka Ayanokoji,
-Anime Character,Miss Kobayashi's Dragon Maid,Kobayashi,
-Anime Character,Chainsaw Man,Kobeni's Car,
-Anime Character,Assassination Classroom,Koro-sensei,
-Anime Character,My Deer Friend Nokotan,Koshi-tan,
-Anime Character,Your Lie in April,Kousei Arima,
-Anime Character,Dragon Ball,Krillin,
-Anime Character,Hunter x Hunter,Kurapika,
-Anime Character,Death Note,L,
-Anime Character,Princess Mononoke,Lady Eboshi,
-Anime Character,Mashle,Lance,
-Anime Character,Beastars,Legoshi,
-Anime Character,Code Geass,Lelouch,
-Anime Character,Mashle,Lemon,
-Anime Character,Hunter x Hunter,Leorio,
-Anime Character,Attack on Titan,Levi Ackermann,
-Anime Character,Death Note,Light Yagami,
-Anime Character,Spy x Family,Loid Forger,
-Anime Character,Konosuba,Lord Alderp,
-Anime Character,Pokemon,Lucario,
-Anime Character,Cyberpunk Edgerunners,Lucy,
-Anime Character,Lupin III,Lupin,
-Anime Character,Porco Rosso,Madame Gina,
-Anime Character,Madoka Magica,Madoka,
-Anime Character,The Angel Next Door Spoils Me Rotten,Mahiru Shiina,
-Anime Character,Jujutsu Kaisen,Mahito,
-Anime Character,Nichijou,Mai,
-Anime Character,My Neighbor Totoro,Mai Kusakabe,
-Anime Character,Bunny Girl Senpai,Mai Sakurajima,
-Anime Character,Soul Eater,Maka Albarn,
-Anime Character,Kaguya-Sama: Love is War,Maki Shoji,
-Anime Character,Chainsaw Man,Makima,
-Anime Character,Apothecary Diaries,Maomao,
-Anime Character,My Dress Up Darling,Marin Kitagawa,
-Anime Character,Mashle,Mash,
-Anime Character,Fate/Grand Order,Mash Kyrielight,
-Anime Character,Jujutsu Kaisen,Megumi Fushiguro,
-Anime Character,Konosuba,Megumin,
-Anime Character,Blue Lock,Meguru Bachira,
-Anime Character,The Seven Deadly Sins,Meliodas,
-Anime Character,Oshi No Ko,Mem-Cho,
-Anime Character,Pokemon,Mewtwo,
-Anime Character,Attack on Titan,Mikasa Ackermann,
-Anime Character,Your Name,Miki Onodera,
-Anime Character,Kaguya-Sama: Love is War,Miko Iino,
-Anime Character,Quintessential Quintuplets,Miku Nanako,
-Anime Character,Nichijou,Mio,
-Anime Character,Death Note,Misa Aname,
-Anime Character,Neon Genesis Evangelion,Misato Katsuragi,
-Anime Character,Pokemon,Misty,
-Anime Character,Your Name,Mitsuha Miyamizu,
-Anime Character,Kaguya-Sama: Love is War,Miyuki Shirogane,
-Anime Character,DanDaDan,Momo Ayase,
-Anime Character,One Piece,Monkey D. Luffy,
-Anime Character,Nichijou,Mr. Sakamoto,
-Anime Character,Mob Psycho 100,Musashi Goda (Body Improvement Club Guy),
-Anime Character,Demon Slayer,Muzan,
-Anime Character,Kaguya-Sama: Love is War,Nagisa Kashiwagi,
-Anime Character,Assassination Classroom,Nagisa Shiota,
-Anime Character,Komi Can't Communicate,Najimi Osana,
-Anime Character,One Piece,Nami,
-Anime Character,Nichijou,Nano,
-Anime Character,The Rising of the Shield Hero,Naofumi Iwatani,
-Anime Character,Tonikaku Kawaii,Naoko Yanagi (Ms. Yanagi),
-Anime Character,Naruto,Naruto,
-Anime Character,Tonikaku Kawaii,Nasa Yuzaki,
-Anime Character,Fairy Tail,Natsu Dragneel,
-Anime Character,Nausicaä of the Valley of the Wind,Nausicaä ,
-Anime Character,Call of the Night,Nazuna Nanakusa,
-Anime Character,Toilet Bound Hanako-Kun,Nene Yashiro,
-Anime Character,Demon Slayer,Nezuko,
-Anime Character,Jujutsu Kaisen,Nobara Kugisaki,
-Anime Character,Doraemon,Nobita,
-Anime Character,Black Clover,Noelle Silva,
-Anime Character,My Deer Friend Nokotan,Nokotan,
-Anime Character,My Hero Academia,Ochaco Uraraka,
-Anime Character,Witch Hat Atelier,Olruggio,
-Anime Character,Panty & Stocking,Panty,
-Anime Character,Kaguya-Sama: Love is War,Papa Shirogane,
-Anime Character,Lupita: Castle in the Sky,Pau,
-Anime Character,Dragon Ball,Piccolo,
-Anime Character,Pokemon,Pikachu,
-Anime Character,Ponyo,Ponyo,
-Anime Character,Porco Rosso,Porco,
-Anime Character,Chainsaw Man,Power,
-Anime Character,Re:Zero,Puck,
-Anime Character,Witch Hat Atelier,Qifrey,
-Anime Character,Mashle,Raine Ames,
-Anime Character,Re:Zero,Ram,
-Anime Character,The Rising of the Shield Hero,Raphtalia,
-Anime Character,Neon Genesis Evangelion,Rei Ayanami,
-Anime Character,Re:Zero,Reid,
-Anime Character,Mob Psycho 100,Reigen Arataka,
-Anime Character,Re:Zero,Reinhart,
-Anime Character,Re:Zero,Rem,
-Anime Character,Chainsaw Man,Reze,
-Anime Character,Witch Hat Atelier,Riche,
-Anime Character,"Love, Chuunibyo, and Other Delusions",Rikka,
-Anime Character,Blue Lock,Rin Itoshi,
-Anime Character,Fate/Stay Night,Rin Tohsaka,
-Anime Character,Bunny Girl Senpai,Rio Futaba,
-Anime Character,Mob Psycho 100,Ritsu Kageyama,
-Anime Character,One Piece,Roronoa Zoro,
-Anime Character,Mushoku Tensei,Roxy,
-Anime Character,Full Metal Alchemist Brotherhood,Roy Mustang,
-Anime Character,Oshi No Ko,Ruby Hoshino,
-Anime Character,Mushoku Tensei,Rudeus Greyrat,
-Anime Character,Jujutsu Kaisen,Ryomen Sukuna,
-Anime Character,Death Note,Ryuk,
-Anime Character,Kill la Kill,Ryuuko,
-Anime Character,One Punch Man,Saitama,
-Anime Character,Naruto,Sakura,
-Anime Character,Bunny Girl Senpai,Sakuta Azusagawa,
-Anime Character,Princess Mononoke,San,
-Anime Character,One Piece,Sanji,
-Anime Character,Re:Zero,Satella - Witch of Envy,
-Anime Character,Jujutsu Kaisen,Satoru Gojo,
-Anime Character,My Neighbor Totoro,Satsuki Kusakabe,
-Anime Character,One Punch Man,Sea King,
-Anime Character,Whisper of the Heart,Seiji Amasawa,
-Anime Character,DanDaDan,Seiko Ayase (Santa Dodoria),
-Anime Character,Blue Lock,Seishiro Nagi,
-Anime Character,Dr. Stone,Senku,
-Anime Character,Overlord,Shalltear,
-Anime Character,One Piece,Shanks,
-Anime Character,Lupita: Castle in the Sky,Sheeta,
-Anime Character,Gurren Lagann,Shimon,
-Anime Character,Neon Genesis Evangelion,Shinji,
-Anime Character,Fire Force,Shinra Kusakabe,
-Anime Character,Deadman Wonderland,Shiro,
-Anime Character,No Game No Life,Shiro (aka the loli),
-Anime Character,Whisper of the Heart,Shizuku,
-Anime Character,Mob Psycho 100,Sho Suzuki,
-Anime Character,Komi Can't Communicate,Shoko Komi,
-Anime Character,Bunny Girl Senpai,Shoko Makinohara,
-Anime Character,Haikyuu,Shoyo Hinata,
-Anime Character,Dragon Ball,Son Gohan,
-Anime Character,Dragon Ball,Son Goku,
-Anime Character,Howl's Moving Castle,Sophie Hatter,
-Anime Character,No Game No Life,Sora (aka the chud),
-Anime Character,Ponyo,Sousuke,
-Anime Character,One Punch Man,Speed-o'-Sound Sonic,
-Anime Character,Cowboy Bebop,Spike Spiegel,
-Anime Character,Pokemon,Squirtle,
-Anime Character,Frieren,Stark,
-Anime Character,Panty & Stocking,Stocking,
-Anime Character,Re:Zero,Subaru Natsuki,
-Anime Character,Jujutsu Kaisen,Suguru Geto,
-Anime Character,Solo Leveling,Sung Jinwoo,
-Anime Character,Naruto,Susuke,
-Anime Character,Mushoku Tensei,Sylphy,
-Anime Character,Toradora,Taiga Aisaka,
-Anime Character,Your Name,Taki Tachibana,
-Anime Character,Demon Slayer,Tanjiro,
-Anime Character,The Saga of Tanya the Evil,Tanya von Degurechaff,
-Anime Character,Witch Hat Atelier,Tartah,
-Anime Character,One Punch Man,Tatsumaki,
-Anime Character,Witch Hat Atelier,Tetia,
-Anime Character,Whisper of the Heart/The Cat Returns,The Baron,
-Anime Character,Vinland Saga,Thorfinn,
-Anime Character,Tonikaku Kawaii,Toast,
-Anime Character,Haikyuu,Tobio Kageyama,
-Anime Character,My Hero Academia,Todoroki,
-Anime Character,My Hero Academia,Toga,
-Anime Character,Mob Psycho 100,Toichiro Suzuki,
-Anime Character,Tonikaku Kawaii,Tokiko Tsukuyomi,
-Anime Character,Kiki's Delivery Service,Tombo Kopoli,
-Anime Character,One Piece,Tony Tony Choppa,
-Anime Character,My Neighbor Totoro,Totoro,
-Anime Character,Dr. Stone,Tsukasa,
-Anime Character,Tonikaku Kawaii,Tsukasa Yuzaki,
-Anime Character,DanDaDan,Turbo Granny,
-Anime Character,Sailor Moon,Usagi Tsukino,
-Anime Character,One Piece,Usopp,
-Anime Character,Dragon Ball,Vegeta,
-Anime Character,My Dress Up Darling,Wakana Gojou,
-Anime Character,Howl's Moving Castle,Witch of the Waste,
-Anime Character,Konosuba,Wiz,
-Anime Character,Noragami,Yato,
-Anime Character,Blue Lock,Yoichi Isagi,
-Anime Character,Gurren Lagann,Yoko,
-Anime Character,Spy x Family,Yor Briar,
-Anime Character,Your Name,Yotsuha Miyamizu,
-Anime Character,Kaguya-Sama: Love is War,Yu Ishigami,
-Anime Character,Spirited Away,Yubaba,
-Anime Character,Jujutsu Kaisen,Yuji Itadori,
-Anime Character,Black Clover,Yuno,
-Anime Character,Future Diary,Yuno Gasai,
-Anime Character,Konosuba,Yunyun,
-Anime Character,Spy x Family,Yuri Briar,
-Anime Character,Nichijou,Yuuko,
-Anime Character,Spirited Away,Zeniba,
-Anime Character,Demon Slayer,Zenitsu,
-Anime Character,Inuyashiki,Donald Trump,`;
+        const DEFAULT_CSV = `Category,Show,Character
+Anime Character,86,Vladilena Milize
+Anime Character,100 Kanojo,Rentaro
+Anime Character,A Silent Voice,Shoko Nishimiya
+Anime Character,A Silent Voice,Shoya Ishida
+Anime Character,Ace Attorney,Phoenix Wright
+Anime Character,Afro Samurai,Afro
+Anime Character,Akame ga Kill,Akame
+Anime Character,Akira,Akira
+Anime Character,Akira,Shotaro Kaneda
+Anime Character,Alya-san Sometimes Hides her Feelings in Russian,Alya-san
+Anime Character,Ancient Magus Bride,Elias Ainsworth
+Anime Character,Angel Beats,Yuzuru Otonashi
+Anime Character,Another,Mei Misaki
+Anime Character,Apothecary Diaries,Jinshi
+Anime Character,Apothecary Diaries,Maomao
+Anime Character,Assassination Classroom,Koro-sensei
+Anime Character,Assassination Classroom,Nagisa Shiota
+Anime Character,Astro Boy,Astro
+Anime Character,Attack on Titan,Armin Arlelt
+Anime Character,Attack on Titan,Colossal Titan
+Anime Character,Attack on Titan,Eren Yeager
+Anime Character,Attack on Titan,Levi Ackermann
+Anime Character,Attack on Titan,Mikasa Ackermann
+Anime Character,Azumanga Daioh,"Ayumu Kasuga ""Osaka"""
+Anime Character,Azumanga Daioh,"Chiyo-chichi (the ""cat"")"
+Anime Character,Azumanga Daioh,Mr. Kimura
+Anime Character,Baki,Baki Hanma
+Anime Character,Baki,Barack Ozma
+Anime Character,Baki,Donald Tranp
+Anime Character,Baki,Yujiro Hanma
+Anime Character,Beastars,Haru
+Anime Character,Beastars,Legoshi
+Anime Character,Berserk,Griffith
+Anime Character,Berserk,Guts
+Anime Character,Beyblade,
+Anime Character,Black Butler,Sebastian Michaelis
+Anime Character,Black Clover,Asta
+Anime Character,Black Clover,Noelle Silva
+Anime Character,Black Clover,Yuno
+Anime Character,Bleach,Aizen
+Anime Character,Bleach,Ichigo Kurosaki
+Anime Character,Blue Lock,Hyoma Chigiri
+Anime Character,Blue Lock,Meguru Bachira
+Anime Character,Blue Lock,Rin Itoshi
+Anime Character,Blue Lock,Seishiro Nagi
+Anime Character,Blue Lock,Yoichi Isagi
+Anime Character,Bocchi the Rock!,Hitori Gotoh (Bocchi)
+Anime Character,Bocchi the Rock!,Nijika Ijichi
+Anime Character,Boruto: Naruto Next Generations,Boruto
+Anime Character,Bungou Stray Dogs,Atsushi
+Anime Character,Bungou Stray Dogs,Dazai
+Anime Character,Bunny Girl Senpai,Kaede Azusagawa
+Anime Character,Bunny Girl Senpai,Mai Sakurajima
+Anime Character,Bunny Girl Senpai,Rio Futaba
+Anime Character,Bunny Girl Senpai,Sakuta Azusagawa
+Anime Character,Bunny Girl Senpai,Shoko Makinohara
+Anime Character,Call of the Night,Nazuna Nanakusa
+Anime Character,Chainsaw Man,Aki
+Anime Character,Chainsaw Man,Angel Devil
+Anime Character,Chainsaw Man,Denji
+Anime Character,Chainsaw Man,Kobeni's Car
+Anime Character,Chainsaw Man,Makima
+Anime Character,Chainsaw Man,Power
+Anime Character,Chainsaw Man,Reze
+Anime Character,Classroom of the Elite,Kiyotaka Ayanokoji
+Anime Character,Code Geass,C.C.
+Anime Character,Code Geass,Lelouch
+Anime Character,Cowboy Bebop,Spike Spiegel
+Anime Character,Crayon Shin-chan,Shin-chan
+Anime Character,Cyberpunk Edgerunners,David Martinez
+Anime Character,Cyberpunk Edgerunners,Lucy
+Anime Character,DanDaDan,"""Jiji"" Enjoji"
+Anime Character,DanDaDan,Aira Shiratori
+Anime Character,DanDaDan,"Ken ""Okarun"" Takakura"
+Anime Character,DanDaDan,Momo Ayase
+Anime Character,DanDaDan,Seiko Ayase (Santa Dodoria)
+Anime Character,DanDaDan,Turbo Granny
+Anime Character,Danganronpa,Kyoko Kirigiri
+Anime Character,Darling in the Franxx,Hiro
+Anime Character,Darling in the Franxx,Zero Two
+Anime Character,Deadman Wonderland,Shiro
+Anime Character,Death Note,L
+Anime Character,Death Note,Light Yagami
+Anime Character,Death Note,Misa Aname
+Anime Character,Death Note,Ryuk
+Anime Character,Death Parade,Decim
+Anime Character,Demon Slayer,Inosuke
+Anime Character,Demon Slayer,Muzan
+Anime Character,Demon Slayer,Nezuko
+Anime Character,Demon Slayer,Tanjiro
+Anime Character,Demon Slayer,Zenitsu
+Anime Character,Detective Conan,Conan
+Anime Character,Digimon,Omegamon (Omnimon)
+Anime Character,Don't Toy with Me Miss Nagatoro,Miss Nagatoro
+Anime Character,Doraemon,Doraemon
+Anime Character,Doraemon,Nobita
+Anime Character,Dr. Stone,Gen Asagiri
+Anime Character,Dr. Stone,Senku
+Anime Character,Dr. Stone,Tsukasa
+Anime Character,Dragon Ball,Cell
+Anime Character,Dragon Ball,Frieza
+Anime Character,Dragon Ball,Krillin
+Anime Character,Dragon Ball,Piccolo
+Anime Character,Dragon Ball,Son Gohan
+Anime Character,Dragon Ball,Son Goku
+Anime Character,Dragon Ball,Vegeta
+Anime Character,Fairy Tail,Natsu Dragneel
+Anime Character,Fate/Apocrypha,Astolfo
+Anime Character,Fate/Grand Order,Mash Kyrielight
+Anime Character,Fate/Stay Night,Shirou Emiya
+Anime Character,Fate/Stay Night,Artoria Pendragon (Saber)
+Anime Character,Fate/Stay Night,Gilgamesh
+Anime Character,Fate/Stay Night,Rin Tohsaka
+Anime Character,Fire Force,Shinra Kusakabe
+Anime Character,Fist of the North Star,Kenshiro
+Anime Character,Frieren,Eisen
+Anime Character,Frieren,Fern
+Anime Character,Frieren,Heiter
+Anime Character,Frieren,Himmel
+Anime Character,Frieren,Stark
+Anime Character,Frieren: Beyond Journey's End,Frieren
+Anime Character,Full Metal Alchemist Brotherhood,Alphonse Elric
+Anime Character,Full Metal Alchemist Brotherhood,Edward Elric
+Anime Character,Full Metal Alchemist Brotherhood,Father
+Anime Character,Full Metal Alchemist Brotherhood,Roy Mustang
+Anime Character,Future Diary,Yuno Gasai
+Anime Character,Gachiakuta,Rudo
+Anime Character,Ghost Stories (English Dub),Amanojaku/Kaya (the cat)
+Anime Character,Gintama,Gintoki Sakata
+Anime Character,Girls' Last Tour,"Chito ""Chii-chan"""
+Anime Character,Girls' Last Tour,"Yuuri ""Yuu"""
+Anime Character,Great Teacher Onizuka,Azusa Fuyutsuki
+Anime Character,Great Teacher Onizuka,Eikichi Onizuka
+Anime Character,Gurren Lagann,Anti-Spiral
+Anime Character,Gurren Lagann,Kamina
+Anime Character,Gurren Lagann,Shimon
+Anime Character,Gurren Lagann,Yoko
+Anime Character,Haikyuu,Shoyo Hinata
+Anime Character,Haikyuu,Tobio Kageyama
+Anime Character,Hajime no Ippo,Ippo
+Anime Character,Hell's Paradise,Gabimaru
+Anime Character,High School DxD,Issei Hyoudou
+Anime Character,Horimiya,Hori Kyouko
+Anime Character,Howl's Moving Castle,Calcifer
+Anime Character,Howl's Moving Castle,Howl
+Anime Character,Howl's Moving Castle,Sophie Hatter
+Anime Character,Howl's Moving Castle,Witch of the Waste
+Anime Character,Hunter x Hunter,Gon Freccs
+Anime Character,Hunter x Hunter,Hisoka
+Anime Character,Hunter x Hunter,Killua
+Anime Character,Hunter x Hunter,Kurapika
+Anime Character,Hunter x Hunter,Leorio
+Anime Character,Initial D,Takumi Fujiwara
+Anime Character,Inuyasha,Inuyasha
+Anime Character,Inuyashiki,Donald Trump
+Anime Character,Jojo's Bizzare Adventure,Dio Brando
+Anime Character,Jojo's Bizzare Adventure,Giorno Giovanna
+Anime Character,Jojo's Bizzare Adventure,Jonathan Joestar
+Anime Character,Jojo's Bizzare Adventure,Joseph Joestar
+Anime Character,Jojo's Bizzare Adventure,Josuke Higashikata
+Anime Character,Jojo's Bizzare Adventure,Jotaro Kujo
+Anime Character,Jojo's Bizzare Adventure,Robert E. O. Speedwagon
+Anime Character,Jojo's Bizzare Adventure,Jolyne Kujo
+Anime Character,Jujutsu Kaisen,Mahito
+Anime Character,Jujutsu Kaisen,Megumi Fushiguro
+Anime Character,Jujutsu Kaisen,Nobara Kugisaki
+Anime Character,Jujutsu Kaisen,Ryomen Sukuna
+Anime Character,Jujutsu Kaisen,Satoru Gojo
+Anime Character,Jujutsu Kaisen,Suguru Geto
+Anime Character,Jujutsu Kaisen,Yuji Itadori
+Anime Character,Kaguya-Sama: Love is War,Ai Hayasaka
+Anime Character,Kaguya-Sama: Love is War,Chika Fujiwara
+Anime Character,Kaguya-Sama: Love is War,"Kaguya Shinomiya (Shirogane, recently)"
+Anime Character,Kaguya-Sama: Love is War,Maki Shoji
+Anime Character,Kaguya-Sama: Love is War,Miko Iino
+Anime Character,Kaguya-Sama: Love is War,Miyuki Shirogane
+Anime Character,Kaguya-Sama: Love is War,Nagisa Kashiwagi
+Anime Character,Kaguya-Sama: Love is War,Papa Shirogane
+Anime Character,Kaguya-Sama: Love is War,Tsubame Koyasu
+Anime Character,Kaguya-Sama: Love is War,Yu Ishigami
+Anime Character,Kaiju No.8,Kafka Hibino
+Anime Character,Kiki's Delivery Service,Jiji
+Anime Character,Kiki's Delivery Service,Kiki
+Anime Character,Kiki's Delivery Service,Tombo Kopoli
+Anime Character,Kill la Kill,Ryuuko
+Anime Character,Komi Can't Communicate,Hitohito Tadano
+Anime Character,Komi Can't Communicate,Najimi Osana
+Anime Character,Komi Can't Communicate,Shoko Komi
+Anime Character,Konosuba,Aqua
+Anime Character,Konosuba,Darkness
+Anime Character,Konosuba,Kazuma Satou
+Anime Character,Konosuba,Lord Alderp
+Anime Character,Konosuba,Megumin
+Anime Character,Konosuba,Wiz
+Anime Character,Konosuba,Yunyun
+Anime Character,Kubo-san Won't Let Me Be Invisible,Kubo-san
+Anime Character,"Love, Chuunibyo, and Other Delusions",Rikka
+Anime Character,Lupin III,Lupin
+Anime Character,Lupita: Castle in the Sky,Pau
+Anime Character,Lupita: Castle in the Sky,Sheeta
+Anime Character,Lycoris Recoil,Chisato Nishikigi (pink hair)
+Anime Character,Made in Abyss,Nanachi
+Anime Character,Madoka Magica,Homura
+Anime Character,Madoka Magica,Madoka
+Anime Character,Masamune-kun's Revenge,Aki Adagaki
+Anime Character,Masamune-kun's Revenge,Makabe Masamune
+Anime Character,Mashle,Dot
+Anime Character,Mashle,Finn Ames
+Anime Character,Mashle,Headmaster Wahlberg
+Anime Character,Mashle,Innocent Zero
+Anime Character,Mashle,Lance
+Anime Character,Mashle,Lemon
+Anime Character,Mashle,Mash
+Anime Character,Mashle,Raine Ames
+Anime Character,Miss Kobayashi's Dragon Maid,Kobayashi
+Anime Character,Miss Kobayashi's Dragon Maid,Tohru
+Anime Character,Miss Kobayashi's Dragon Maid,Lucoa
+Anime Character,Miss Kobayashi's Dragon Maid,Kanna
+Anime Character,Mob Psycho 100,"""Mob"" Shigeo Kageyama"
+Anime Character,Mob Psycho 100,"""Teru"" Teruki Hanazawa"
+Anime Character,Mob Psycho 100,Dimple
+Anime Character,Mob Psycho 100,Katsuya Serizawa
+Anime Character,Mob Psycho 100,Keiji Mogami
+Anime Character,Mob Psycho 100,Musashi Goda (Body Improvement Club Guy)
+Anime Character,Mob Psycho 100,Reigen Arataka
+Anime Character,Mob Psycho 100,Ritsu Kageyama
+Anime Character,Mob Psycho 100,Sho Suzuki
+Anime Character,Mob Psycho 100,Toichiro Suzuki
+Anime Character,Mobile Suit Gundam,Amuro Ray
+Anime Character,Momotarou: Sacred Sailors,Momotarou
+Anime Character,Monster,Dr. Kenzo Tenma
+Anime Character,Mushoku Tensei,Roxy
+Anime Character,Mushoku Tensei,Rudeus Greyrat
+Anime Character,Mushoku Tensei,Sylphy
+Anime Character,My Deer Friend Nokotan,Koshi-tan
+Anime Character,My Deer Friend Nokotan,Nokotan
+Anime Character,My Dress Up Darling,"""Juju"" Sajuna Inui"
+Anime Character,My Dress Up Darling,Amane Himeno
+Anime Character,My Dress Up Darling,Marin Kitagawa
+Anime Character,My Dress Up Darling,Wakana Gojou
+Anime Character,My Hero Academia,All Might
+Anime Character,My Hero Academia,Bakugou
+Anime Character,My Hero Academia,Deku
+Anime Character,My Hero Academia,Ochaco Uraraka
+Anime Character,My Hero Academia,Todoroki
+Anime Character,My Hero Academia,Toga
+Anime Character,My Neighbor Totoro,Catbus
+Anime Character,My Neighbor Totoro,Mai Kusakabe
+Anime Character,My Neighbor Totoro,Satsuki Kusakabe
+Anime Character,My Neighbor Totoro,Totoro
+Anime Character,Naruto,Hinata
+Anime Character,Naruto,Kakashi
+Anime Character,Naruto,Naruto
+Anime Character,Naruto,Sakura
+Anime Character,Naruto,Sasuke
+Anime Character,Nausicaä of the Valley of the Wind,Nausicaä 
+Anime Character,Neon Genesis Evangelion,Asuka Langley Soryu
+Anime Character,Neon Genesis Evangelion,Gendo Ikari
+Anime Character,Neon Genesis Evangelion,Kaworu Nagisa
+Anime Character,Neon Genesis Evangelion,Misato Katsuragi
+Anime Character,Neon Genesis Evangelion,Rei Ayanami
+Anime Character,Neon Genesis Evangelion,Shinji
+Anime Character,Nichijou,"Hakase Shinonome ""The Professor"" "
+Anime Character,Nichijou,Mai
+Anime Character,Nichijou,Mio
+Anime Character,Nichijou,Mr. Sakamoto
+Anime Character,Nichijou,Nano
+Anime Character,Nichijou,Yuuko
+Anime Character,NieR,2B
+Anime Character,No Game No Life,Shiro (aka the loli)
+Anime Character,No Game No Life,Sora (aka the chud)
+Anime Character,Noragami,Yato
+Anime Character,Odd Taxi,Hiroshi Odokawa (the Walrus)
+Anime Character,One Piece,Monkey D. Luffy
+Anime Character,One Piece,Nami
+Anime Character,One Piece,Roronoa Zoro
+Anime Character,One Piece,Sanji
+Anime Character,One Piece,Shanks
+Anime Character,One Piece,Tony Tony Choppa
+Anime Character,One Piece,Usopp
+Anime Character,One Punch Man,Black Sperm
+Anime Character,One Punch Man,Boros
+Anime Character,One Punch Man,Elder Centipede
+Anime Character,One Punch Man,Garou
+Anime Character,One Punch Man,Genos
+Anime Character,One Punch Man,King
+Anime Character,One Punch Man,Saitama
+Anime Character,One Punch Man,Sea King
+Anime Character,One Punch Man,Speed-o'-Sound Sonic
+Anime Character,One Punch Man,Tatsumaki
+Anime Character,Oshi No Ko,Ai Hoshino
+Anime Character,Oshi No Ko,Akane Kurokawa
+Anime Character,Oshi No Ko,Aqua Hoshino
+Anime Character,Oshi No Ko,Kana Arima
+Anime Character,Oshi No Ko,Mem-cho
+Anime Character,Oshi No Ko,Ruby Hoshino
+Anime Character,Overlord,Ainz Ooal Gown
+Anime Character,Overlord,Albedo
+Anime Character,Overlord,Demiurge
+Anime Character,Overlord,Shalltear
+Anime Character,Panty & Stocking,Panty
+Anime Character,Panty & Stocking,Stocking
+Anime Character,Parasyte,Shinichi Izumi
+Anime Character,Persona 5,Ren Amamiya
+Anime Character,Pokemon,Ash
+Anime Character,Pokemon,Bulbasaur
+Anime Character,Pokemon,Charizard
+Anime Character,Pokemon,Eevee
+Anime Character,Pokemon,Jigglypuff
+Anime Character,Pokemon,Lucario
+Anime Character,Pokemon,Mewtwo
+Anime Character,Pokemon,Misty
+Anime Character,Pokemon,Pikachu
+Anime Character,Pokemon,Squirtle
+Anime Character,Ponyo,Ponyo
+Anime Character,Ponyo,Sousuke
+Anime Character,Porco Rosso,Donald Curtis
+Anime Character,Porco Rosso,Fio Piccolo
+Anime Character,Porco Rosso,Madame Gina
+Anime Character,Porco Rosso,Porco
+Anime Character,Princess Mononoke,Ashitaka
+Anime Character,Princess Mononoke,Lady Eboshi
+Anime Character,Princess Mononoke,San
+Anime Character,Quintessential Quintuplets,Miku Nanako
+Anime Character,Ranma 1/2,Ranma
+Anime Character,Re:Zero,"Beatrice ""Beako"" "
+Anime Character,Re:Zero,Anastasia
+Anime Character,Re:Zero,Echidna (Witch of Greed)
+Anime Character,Re:Zero,Emilia
+Anime Character,Re:Zero,Felix
+Anime Character,Re:Zero,Julius
+Anime Character,Re:Zero,Puck
+Anime Character,Re:Zero,Ram
+Anime Character,Re:Zero,Reid Astrea
+Anime Character,Re:Zero,Reinhard von Astrea
+Anime Character,Re:Zero,Rem
+Anime Character,Re:Zero,Satella (Witch of Envy)
+Anime Character,Re:Zero,Subaru Natsuki
+Anime Character,Re:Zero,Roswaal L. Mathers
+Anime Character,Redo of a Healer,Keyaru
+Anime Character,Sailor Moon,Usagi Tsukino
+Anime Character,Sakamoto Days,Sakamoto
+Anime Character,Solo Leveling,Sung Jinwoo
+Anime Character,Soul Eater,Maka Albarn
+Anime Character,Spirited Away,Chihiro
+Anime Character,Spirited Away,Haku
+Anime Character,Spirited Away,Yubaba
+Anime Character,Spirited Away,Zeniba
+Anime Character,Spy x Family,Anya
+Anime Character,Spy x Family,Bond
+Anime Character,Spy x Family,Damian Desmond
+Anime Character,Spy x Family,Donavan Desmond
+Anime Character,Spy x Family,Frankly Franklin (aka Chud)
+Anime Character,Spy x Family,Loid Forger
+Anime Character,Spy x Family,Yor Briar
+Anime Character,Spy x Family,Yuri Briar
+Anime Character,Steins;Gate,"Dr. Rintaro Okabe ""Okarin"""
+Anime Character,Suzume,Souta (the Chair)
+Anime Character,Suzume,Suzume
+Anime Character,Sword Art Online,Asuna
+Anime Character,Sword Art Online,Kirito
+Anime Character,Takopi's Original Sin,Takopi
+Anime Character,Teasing Master Takagi-san,Takagi-san
+Anime Character,That Time I Got Reincarnated as a Slime,Milim
+Anime Character,That Time I Got Reincarnated as a Slime,Rimuru
+Anime Character,The Angel Next Door Spoils Me Rotten,Mahiru Shiina
+Anime Character,The Boy and the Heron,The Heron
+Anime Character,The Cat Returns,The Baron
+Anime Character,The Fragrant Flower Blooms with Dignity,Waguri Kaoruko
+Anime Character,The Promised Neverland,Emma
+Anime Character,The Rising of the Shield Hero,Filo
+Anime Character,The Rising of the Shield Hero,Naofumi Iwatani
+Anime Character,The Rising of the Shield Hero,Raphtalia
+Anime Character,The Saga of Tanya the Evil,"""Visha"" Viktorya"
+Anime Character,The Saga of Tanya the Evil,Tanya von Degurechaff
+Anime Character,The Seven Deadly Sins,Meliodas
+Anime Character,The Tale of the Princess Kaguya,Kaguya-hime (Princess Kaguya)
+Anime Character,To Your Eternity,Fushi
+Anime Character,Toilet Bound Hanako-Kun,Hanano-kun
+Anime Character,Toilet Bound Hanako-Kun,Nene Yashiro
+Anime Character,Tokyo Ghoul,Ken Kaneki
+Anime Character,Tokyo Revengers,Takemichi Hanagaki
+Anime Character,Tonikaku Kawaii,Aurora
+Anime Character,Tonikaku Kawaii,Aya Arisugawa
+Anime Character,Tonikaku Kawaii,Charlotte
+Anime Character,Tonikaku Kawaii,Chitose Kaginoji
+Anime Character,Tonikaku Kawaii,Kaname Arisugawa
+Anime Character,Tonikaku Kawaii,Naoko Yanagi (Ms. Yanagi)
+Anime Character,Tonikaku Kawaii,Nasa Yuzaki
+Anime Character,Tonikaku Kawaii,Toast
+Anime Character,Tonikaku Kawaii,Tokiko Tsukuyomi
+Anime Character,Tonikaku Kawaii,Tsukasa Yuzaki
+Anime Character,Toradora,Ryuuji Takasu
+Anime Character,Toradora,Taiga Aisaka
+Anime Character,Twin Star Exorcists,Benio Adashino
+Anime Character,Twin Star Exorcists,Rokuro Enmado
+Anime Character,Umamusume,Gold Ship
+Anime Character,Umamusume,Special Week
+Anime Character,Uzumaki,Kirie Goshima
+Anime Character,Vinland Saga,Thorfinn
+Anime Character,Weathering With You,Hina
+Anime Character,Whisper of the Heart,Seiji Amasawa
+Anime Character,Whisper of the Heart,Shizuku
+Anime Character,Witch Hat Atelier,Agott
+Anime Character,Witch Hat Atelier,Coco
+Anime Character,Witch Hat Atelier,Coco's Brushbuddy
+Anime Character,Witch Hat Atelier,Olruggio
+Anime Character,Witch Hat Atelier,Qifrey
+Anime Character,Witch Hat Atelier,Riche
+Anime Character,Witch Hat Atelier,Tartah
+Anime Character,Witch Hat Atelier,Tetia
+Anime Character,X-Men,Cyclops
+Anime Character,X-Men,Wolverine
+Anime Character,You and I are Polar Opposites,Suzuki
+Anime Character,Your Lie in April,Kaori Miyazono
+Anime Character,Your Lie in April,Kousei Arima
+Anime Character,Your Name,Miki Onodera
+Anime Character,Your Name,Mitsuha Miyamizu
+Anime Character,Your Name,Taki Tachibana
+Anime Character,Your Name,Yotsuha Miyamizu
+Anime Character?,Yu-Gi-Oh!,Pot of Greed
+Anime Character,Yuri on Ice!!!,Victor Nikiforov
+Anime Character,Zatch Bell,Zatch Bell`;
 
         let currentDataset = [];
         let roomCode = null;
